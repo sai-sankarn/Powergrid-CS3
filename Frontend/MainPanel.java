@@ -7,12 +7,16 @@ import javax.swing.JPanel;
 public class MainPanel extends JPanel implements MouseListener{
     
     StartPanel startPanel;
+    BiddingPanel biddingPanel;
 
     public MainPanel(){
         setLayout(null);
         startPanel = new StartPanel();
+        biddingPanel = new BiddingPanel();
         add(startPanel);
-        startPanel.setBounds(0,0, 1600, 1800);
+        add(biddingPanel);
+        startPanel.setBounds(0,0, 1600, 1000);
+        biddingPanel.setBounds(0,0,1600,1000);
         startPanel.setVisible(true);
         addMouseListener(this);
     }
@@ -20,7 +24,10 @@ public class MainPanel extends JPanel implements MouseListener{
     @Override
     public void mouseClicked(MouseEvent e) {
         System.out.println("(" + e.getX() + ", " + e.getY() + ")");
-        if ()
+        if (e.getX()>1244 && e.getX()< 1467 && e.getY()>421 && e.getY() < 495){
+            startPanel.setVisible(false);
+            biddingPanel.setVisible(true);
+        }
     }
 
     @Override
