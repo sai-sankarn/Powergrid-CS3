@@ -20,6 +20,7 @@ public class PowergridFrame extends JFrame {
         mainContainer = new JPanel(cardLayout);
 
         mainContainer.add(new StartPanel(this), "START");
+        mainContainer.add(new SetupPanel(this), "SETUP");
         mainContainer.add(new BiddingPanel(this), "BIDDING");
 
         add(mainContainer);
