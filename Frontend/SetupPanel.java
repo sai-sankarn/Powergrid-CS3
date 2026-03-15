@@ -18,6 +18,7 @@ public class SetupPanel extends JPanel implements MouseListener{
     JButton yellow;
     JButton blue;
     JButton purple;
+    int count = 0;
 
     public SetupPanel(PowergridFrame frame) {
         this.frame = frame;
@@ -42,6 +43,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         teal.setBorderPainted(false);
         teal.setBounds(1036, 271+50, 200, 100);
         teal.setVisible(true);
+        teal.addActionListener(e -> handleClick(teal));
         add(teal);
 
         brown = new JButton("Brown");
@@ -52,6 +54,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         brown.setBorderPainted(false);
         brown.setBounds(1313, 271+50, 200, 100);
         brown.setVisible(true);
+        brown.addActionListener(e -> handleClick(brown));
         add(brown);
 
         red = new JButton("Red");
@@ -62,6 +65,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         red.setBorderPainted(false);
         red.setBounds(1036, 400+50, 200, 100);
         red.setVisible(true);
+        red.addActionListener(e -> handleClick(red));
         add(red);
 
         yellow = new JButton("Yellow");
@@ -72,6 +76,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         yellow.setBorderPainted(false);
         yellow.setBounds(1313, 400+50, 200, 100);
         yellow.setVisible(true);
+        yellow.addActionListener(e -> handleClick(yellow));
         add(yellow);
 
         blue = new JButton("Blue");
@@ -82,6 +87,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         blue.setBorderPainted(false);
         blue.setBounds(1036, 530+50, 200, 100);
         blue.setVisible(true);
+        blue.addActionListener(e -> handleClick(blue));
         add(blue);
 
         purple = new JButton("Purple");
@@ -92,6 +98,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         purple.setBorderPainted(false);
         purple.setBounds(1313, 530+50, 200, 100);
         purple.setVisible(true);
+        purple.addActionListener(e -> handleClick(purple));
         add(purple);
     }
 
@@ -104,6 +111,14 @@ public class SetupPanel extends JPanel implements MouseListener{
         g.setFont(new Font("ARIAL",Font.BOLD,30));
         g.drawString("Player 1: Select A Color That Corresponds", 969,174);
         g.drawString("To The Area You Want",1093,201);
+    }
+
+    public void handleClick(JButton button) {
+        button.setVisible(false);
+        count++;
+        if (count == 4){
+            frame.showScreen("RESOURCE");
+        }
     }
 
     @Override
