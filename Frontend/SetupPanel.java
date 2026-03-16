@@ -104,7 +104,7 @@ public class SetupPanel extends JPanel implements MouseListener{
 
     public void paintComponent(java.awt.Graphics g){
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, 1600, 1000, null);
+        g.drawImage(background, 0, 0, this.getWidth(), this.getHeight(), null);
         g.setFont(new Font("Arial" ,Font.BOLD,40));
         g.setColor(Color.WHITE);
         g.drawString("SETUP: CHOOSE AREA", 1050, 49);
