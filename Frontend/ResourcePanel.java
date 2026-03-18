@@ -107,10 +107,10 @@ public class ResourcePanel extends JPanel implements MouseListener{
 
     public void handleBuy(String resource){
         switch (resource){
-            case ("COAL") -> list[0]++;
-            case ("OIL") -> list[1]++;
-            case ("TRASH") -> list[2]++;
-            case ("URANIUM") -> list[3]++;
+            case ("COAL") -> list[0]--;
+            case ("OIL") -> list[1]--;
+            case ("TRASH") -> list[2]--;
+            case ("URANIUM") -> list[3]--;
         }
         repaint();
     }
@@ -155,11 +155,43 @@ public class ResourcePanel extends JPanel implements MouseListener{
             g.setColor(new Color(12, 37, 48));
             g.fillRect(x, y, 12, 11);
             switch (i){
-                case 2 -> x=655;
+                case 2 -> {x=655;y=924;}
                 case 5 -> x=556;
                 case 8 -> x=458;
+                case 11 -> x=359;
+                case 14 -> x=260;
+                case 17 -> x=160;
+                case 20 -> x=63;
                 default -> x-=21;
             }
+        }
+
+        //TRASH
+        x=769;
+        y=940;
+        for (int i=0;i<list[2];i++){
+            g.setColor(new Color(245,213,84));
+            g.fillRect(x, y, 18, 12);
+            switch (i) {
+                case 2 -> x=671;
+                case 5 -> x=572;
+                case 8 -> x=474;
+                case 11 -> x=376;
+                case 14 -> {x=276; y=945;}
+                case 17 -> x=180;
+                case 20 -> x=81;
+                default -> x-=28;
+            }
+        }
+
+        //URANIUM
+        x=848;
+        y=936;
+        int width = 16;
+        int height = 14;
+        for (int i=0;i<list[3];i++){
+            g.setColor(new Color(213,82,68));
+            g.fillRect(x, y, width, height);
         }
     }
 
