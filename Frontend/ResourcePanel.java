@@ -192,6 +192,13 @@ public class ResourcePanel extends JPanel implements MouseListener{
         for (int i=0;i<list[3];i++){
             g.setColor(new Color(213,82,68));
             g.fillRect(x, y, width, height);
+            switch (i){
+                case 0 -> {x=808;y=937;}
+                case 1 -> {x=848;y=909;}
+                case 2 -> {x=809;y=902;}
+                case 3 -> {x=774;y=925;width=13;height=10;}
+                default -> {x-=98;}
+            }
         }
     }
 
