@@ -23,6 +23,7 @@ public class PowergridFrame extends JFrame {
         mainContainer.add(new SetupPanel(this), "SETUP");
         mainContainer.add(new BiddingPanel(this), "BIDDING");
         mainContainer.add(new ResourcePanel(this), "RESOURCE");
+        mainContainer.add(new BuildingPanel(this), "BUILDING");
 
         add(mainContainer);
         setVisible(true);

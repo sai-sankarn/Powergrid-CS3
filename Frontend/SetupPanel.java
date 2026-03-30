@@ -117,7 +117,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         button.setVisible(false);
         count++;
         if (count == 4){
-            frame.showScreen("RESOURCE");
+            frame.showScreen("BUILDING");
         }
     }
 
