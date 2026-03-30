@@ -33,6 +33,19 @@ public class Constants {
             coordinates.put("Halle", new Point(581,424));
             coordinates.put("Leipzig", new Point(631,449));
             coordinates.put("Dresden", new Point(761,488));
+            coordinates.put("Erfurt", new Point(515, 485));
+            coordinates.put("Fulda", new Point(398,537));
+            coordinates.put("Wurzburg", new Point(413, 627));
+            coordinates.put("Nuremberg", new Point(516,667));
+            coordinates.put("Aachen", new Point(49,527));
+            coordinates.put("Koln", new Point(139,506));
+            coordinates.put("Trier", new Point(87,634));
+            coordinates.put("Frankfurt - M", new Point(298,576));
+            coordinates.put("Wiesbaden", new Point(241,597));
+            coordinates.put("Mannheim", new Point(288,682));
+            coordinates.put("Saarbrucken", new Point(167,701));
+            coordinates.put("Stuttgart", new Point(317,757));
+            coordinates.put("Freiburg", new Point(208,832));
         }
 
     }
