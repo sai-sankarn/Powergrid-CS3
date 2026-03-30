@@ -47,6 +47,5 @@ public class Constants {
             coordinates.put("Stuttgart", new Point(317,757));
             coordinates.put("Freiburg", new Point(208,832));
         }
-
     }
 }

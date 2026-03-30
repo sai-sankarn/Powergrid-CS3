@@ -95,7 +95,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
 
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+        g.drawImage(background, 0, 0, this.getWidth(), this.getHeight(), null);
         paintText(g);
         paintResourceIcons(g);
     }

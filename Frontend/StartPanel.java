@@ -31,7 +31,7 @@ public class StartPanel extends JPanel implements MouseListener{
     public void mouseClicked(MouseEvent e) {
         System.out.println("(" + e.getX() + ", " + e.getY() + ")");
         if (e.getX()>1244 && e.getX()< 1467 && e.getY()>421 && e.getY() < 495){
-            frame.showScreen("SETUP");
+            frame.showScreen("BIDDING");
         }
     }
 

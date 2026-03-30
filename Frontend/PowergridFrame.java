@@ -14,7 +14,8 @@ public class PowergridFrame extends JFrame {
     public PowergridFrame(String name) {
         super(name);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WIDTH, HEIGHT);
+        setSize(WIDTH,HEIGHT);
+        setResizable(false);
 
         cardLayout = new CardLayout();
         mainContainer = new JPanel(cardLayout);
