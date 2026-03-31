@@ -15,7 +15,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
     int cost;
     String[] cities;
-
+    JLabel label;
 
     JComboBox cityDropdown;
     JButton build;
@@ -42,7 +42,14 @@ public class BuildingPanel extends JPanel implements MouseListener {
     }
 
     public void initUI() {
-        
+
+        label = new JLabel("Select the city from dropdown");
+        label.setFont(new Font("Arial", Font.BOLD, 35));
+        label.setOpaque(false);
+        label.setBounds(1330, 300, 200, 150);
+        label.setVisible(true);
+        add(label);
+
         cityDropdown = new JComboBox(cities);
         cityDropdown.setFont(new Font("Arial", Font.PLAIN, 20));
         cityDropdown.setSelectedIndex(0);
