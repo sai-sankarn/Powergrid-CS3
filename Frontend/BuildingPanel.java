@@ -12,9 +12,20 @@ import javax.swing.*;
 public class BuildingPanel extends JPanel implements MouseListener {
     BufferedImage background; 
     PowergridFrame frame;
-    JComboBox<String> cityDropdown;
+
+    int cost;
+    String[] cities;
+
+
+    JComboBox cityDropdown;
+    JButton build;
+    JButton done;
 
     public BuildingPanel(PowergridFrame frame){
+        // TEMPORARY VALUES
+        cost = 10;
+        cities = new String[]{"one", "two", "three"};
+
         this.frame = frame;
         setLayout(null);
 
@@ -31,7 +42,36 @@ public class BuildingPanel extends JPanel implements MouseListener {
     }
 
     public void initUI() {
-        cityDropdown = new JComboBox<>();
+        
+        cityDropdown = new JComboBox(cities);
+        cityDropdown.setFont(new Font("Arial", Font.PLAIN, 20));
+        cityDropdown.setSelectedIndex(0);
+        cityDropdown.setBounds(900, 200, 400, 30);
+        cityDropdown.setVisible(true);
+        add(cityDropdown);
+
+        build = new JButton("<html>" + ("BUILD\nFOR $" + cost).replaceAll("\\n", "<br>") + "</html>");
+        build.setFont(new Font("Arial", Font.BOLD, 35));
+        build.setBackground(new Color(150, 196, 188));
+        build.setForeground(Color.WHITE);
+        build.setOpaque(true);
+        build.setBorderPainted(false);
+        build.setBounds(1330, 300, 200, 150);
+        build.setVisible(true);
+        //build.addActionListener(e -> handleClick(build));
+        add(build);
+
+        done = new JButton("DONE");
+        done.setFont(new Font("Arial", Font.BOLD, 35));
+        done.setBackground(new Color(206,127,129));
+        done.setForeground(Color.WHITE);
+        done.setOpaque(true);
+        done.setBorderPainted(false);
+        done.setBounds(1330, 500, 200, 100);
+        done.setVisible(true);
+        //done.addActionListener(e -> handleClick(done));
+        add(done);
+        
     }
 
     public void paintComponent(Graphics g) {
