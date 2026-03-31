@@ -10,7 +10,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class BuildingPanel extends JPanel implements MouseListener {
-    BufferedImage background;
+    BufferedImage background; 
     PowergridFrame frame;
     JComboBox<String> cityDropdown;
 
