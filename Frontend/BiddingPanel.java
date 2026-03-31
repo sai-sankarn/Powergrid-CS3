@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -19,6 +20,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
     JButton passButton;
     private int selectedPlantIndex = -1;
     private boolean selectionLocked = false;
+    int player = 1;
+    int firstPlayer = 1;
+    ArrayList<Integer> bids = new ArrayList<>();
+    ArrayList<Integer> powerplantsBought = new ArrayList<>();
 
     public BiddingPanel(PowergridFrame frame){
         this.frame = frame;
@@ -38,6 +43,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        bids.add(0);
+        bids.add(0);
+        bids.add(0);
 
         initUI();
         addMouseListener(this);
@@ -77,6 +86,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bidButton.setBackground(new Color(125,203,178));
         bidButton.setForeground(Color.white);
         bidButton.setVisible(true);
+        bidButton.addActionListener(e -> handleBid(Integer.parseInt(bidInput.getText())));
         add(bidButton);
         //-----------------------------------------------------
         passButton = new JButton("PASS");
@@ -87,6 +97,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setBackground(new Color(237,174,174));
         passButton.setForeground(Color.white);
         passButton.setVisible(true);
+        passButton.addActionListener(e -> handlePass());
         add(passButton);
         
     }
@@ -105,6 +116,49 @@ public class BiddingPanel extends JPanel implements MouseListener {
             g.drawImage(powerplants.get(selectedPlantIndex),996,400,228,228,null);
         }
 
+        g.setFont(new Font("Arial", Font.BOLD, 30));
+        g.drawString("Player: " + player, 963,150);
+        System.out.println(bids);
+    }
+
+    public void handleBid(int amount){
+        bids.set(player-1, amount);
+        int numberOfNulls = 0;
+        for (int i=0;i<bids.size();i++){
+            if (bids.get(i)==-1){
+                numberOfNulls++;
+            }
+        }
+        if (numberOfNulls==2){
+            frame.showScreen("SETUP");
+        }
+        else {
+            if (player==3){
+                player=1;
+            }
+            else {player++;}
+        }
+        repaint();
+    }
+
+    public void handlePass(){
+        bids.set(player-1,-1);
+        int numberOfNulls = 0;
+        for (int i=0;i<bids.size();i++){
+            if (bids.get(i)==-1){
+                numberOfNulls++;
+            }
+        }
+        if (numberOfNulls==2){
+            frame.showScreen("SETUP");
+        }
+        else {
+            if (player==3){
+                player=1;
+            }
+            else {player++;}
+        }
+        repaint();
     }
 
 

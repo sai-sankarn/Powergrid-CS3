@@ -20,8 +20,8 @@ public class Constants {
             coordinates.put("Wilmhelmshaven", new Point(228,180));
             coordinates.put("Bremen", new Point(307,236));
             coordinates.put("Osnabruck", new Point(237,311));
-            coordinates.put("Hannover", new Point(339,325));
-            coordinates.put("Magdeburg", new Point(556,333));
+            coordinates.put("Hannover", new Point(404,331));
+            coordinates.put("Madgeburg", new Point(556,333));
             coordinates.put("Berlin", new Point(702,303));
             coordinates.put("Frankfurt", new Point(797,324));
             coordinates.put("Munster", new Point(186,367));
