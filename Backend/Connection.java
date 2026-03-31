@@ -1,0 +1,17 @@
+public class Connection {
+    private City target;
+    private int cost;
+
+    public Connection(City target, int cost){
+        this.target = target;
+        this.cost = cost;
+    }
+
+    public City getTarget(){
+        return target;
+    }
+
+    public int getCost(){
+        return cost;
+    }
+}
