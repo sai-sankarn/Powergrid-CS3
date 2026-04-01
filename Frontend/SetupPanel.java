@@ -1,10 +1,10 @@
 package Frontend;
 
-import java.awt.Color;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -104,13 +104,20 @@ public class SetupPanel extends JPanel implements MouseListener{
 
     public void paintComponent(java.awt.Graphics g){
         super.paintComponent(g);
-        g.drawImage(background, 0, 0, this.getWidth(), this.getHeight(), null);
+        g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         g.setFont(new Font("Arial" ,Font.BOLD,40));
         g.setColor(Color.WHITE);
         g.drawString("SETUP: CHOOSE AREA", 1050, 49);
         g.setFont(new Font("ARIAL",Font.BOLD,30));
         g.drawString("Player 1: Select A Color That Corresponds", 969,174);
         g.drawString("To The Area You Want",1093,201);
+
+        for (Map.Entry<String, Point> entry : Constants.CityCoordinates.coordinates.entrySet()){
+            double topLeftX = entry.getValue().getX()-(53/2);
+            double topLeftY = entry.getValue().getY()-(53/2);
+
+            g.fillOval((int) topLeftX, (int) topLeftY,53,53);
+        }
     }
 
     public void handleClick(JButton button) {
