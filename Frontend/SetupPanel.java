@@ -116,7 +116,7 @@ public class SetupPanel extends JPanel implements MouseListener{
             double topLeftX = entry.getValue().getX()-(53/2);
             double topLeftY = entry.getValue().getY()-(53/2);
 
-            g.drawOval((int) topLeftX, (int) topLeftY,53,53);
+            g.fillOval((int) topLeftX, (int) topLeftY,53,53);
         }
     }
 

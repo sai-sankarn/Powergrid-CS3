@@ -20,8 +20,8 @@ public class Constants {
             coordinates.put("Wilmhelmshaven", new Point(228,180));
             coordinates.put("Bremen", new Point(307,236));
             coordinates.put("Osnabruck", new Point(237,311));
-            coordinates.put("Hannover", new Point(404,331));
-            coordinates.put("Madgeburg", new Point(556,333));
+            coordinates.put("Hannover", new Point(399,325));
+            coordinates.put("Madgeburg", new Point(566,333));
             coordinates.put("Berlin", new Point(702,303));
             coordinates.put("Frankfurt", new Point(797,324));
             coordinates.put("Munster", new Point(186,367));
@@ -46,6 +46,11 @@ public class Constants {
             coordinates.put("Saarbrucken", new Point(167,701));
             coordinates.put("Stuttgart", new Point(317,757));
             coordinates.put("Freiburg", new Point(208,832));
+            coordinates.put("Konstanz", new Point(316,871));
+            coordinates.put("Augsburg", new Point(469,781));
+            coordinates.put("Regensburg", new Point(589,723));
+            coordinates.put("Passau", new Point(728,773));
+            coordinates.put("Munchen", new Point(561,830));
         }
     }
 }

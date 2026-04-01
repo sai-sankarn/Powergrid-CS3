@@ -48,6 +48,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bids.add(0);
         bids.add(0);
 
+        powerplantsBought.add(-1);
+        powerplantsBought.add(-1);
+        powerplantsBought.add(-1);
+
         initUI();
         addMouseListener(this);
     }
@@ -62,12 +66,12 @@ public class BiddingPanel extends JPanel implements MouseListener {
         powerplantDropdown.addActionListener(e -> {
         if (!selectionLocked) {
             int selectedValue = (int) powerplantDropdown.getSelectedItem();
-            
-            selectedPlantIndex = selectedValue - 3; 
-            
+
+            selectedPlantIndex = selectedValue - 3;
+
             powerplantDropdown.setEnabled(false);
             selectionLocked = true;
-            
+
             repaint();
         }
     });
@@ -99,7 +103,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setVisible(true);
         passButton.addActionListener(e -> handlePass());
         add(passButton);
-        
+
     }
 
     public void paintComponent(Graphics g){
@@ -182,6 +186,6 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
 
 
-    
-    
+
+
 }
