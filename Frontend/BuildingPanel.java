@@ -84,7 +84,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(Color.BLACK);
-        g.drawString("Select the city from dropdown", 1050, 125);
+        g.drawString("Select the city from dropdown", 1030, 140);
     }
 
     @Override
