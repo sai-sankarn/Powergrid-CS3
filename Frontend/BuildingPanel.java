@@ -7,7 +7,9 @@ import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -25,19 +27,36 @@ public class BuildingPanel extends JPanel implements MouseListener {
     JButton build;
     JButton done;
 
+    //hand
+    String player;
+    List<BufferedImage> powerplants;
+    int elektro;
+    List<Integer> inventory;
+
     public BuildingPanel(PowergridFrame frame) {
         // TEMPORARY VALUES
         cityCost = 10;
         cities = Constants.CityCoordinates.coordinates.keySet();
         pointsBuilt = new HashSet<>();
 
+        player = "Player 1";
+        powerplants = new ArrayList<>();
+        elektro = 50;
+        inventory = new ArrayList<>();
+        inventory.add(0);
+        inventory.add(0);
+        inventory.add(0);
+
         this.frame = frame;
         setLayout(null);
 
         try {
             background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-3.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-4.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-5.png")));
         } catch (Exception e) {
-            System.out.println("background image error");
+            System.out.println("exception error");
         }
 
         this.setFocusable(true);
@@ -100,6 +119,17 @@ public class BuildingPanel extends JPanel implements MouseListener {
         for(Point p : pointsBuilt) {
             g.fillRect(p.x-10, p.y-25, 20, 20); // will change depending on step and currentplayer
         }
+
+        // player hand
+        g.setColor(new Color(250, 226, 120));
+        g.fillOval(1460, 695, 120, 120);
+        g.setColor(Color.WHITE);
+        g.drawString(player, 1180, 700);
+        g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
+        g.drawImage(powerplants.get(1), 900+180+5, 770, 180, 180, null);
+        g.drawImage(powerplants.get(2), 900+2*(180+5), 770, 180, 180, null);
+        g.setFont(new Font("Arial", Font.PLAIN, 50));
+        g.drawString("$"+Integer.toString(elektro), 1480, 770);
     }
 
     private void handleBuild(Object item) {
