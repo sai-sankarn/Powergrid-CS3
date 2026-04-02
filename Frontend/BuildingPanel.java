@@ -67,7 +67,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         build.setBorderPainted(false);
         build.setBounds(1330, 300, 200, 150);
         build.setVisible(true);
-        build.addActionListener(e -> handleBuild(cityDropdown.getSelectedItem().toString()));
+        build.addActionListener(e -> handleBuild(cityDropdown.getSelectedItem()));
         add(build);
 
         done = new JButton("DONE");
@@ -102,9 +102,13 @@ public class BuildingPanel extends JPanel implements MouseListener {
         }
     }
 
-    private void handleBuild(String city) {
+    private void handleBuild(Object item) {
+        if(item == null) return;
+
+        String city = item.toString();
         Point p = new Point(Constants.CityCoordinates.coordinates.get(city));
         pointsBuilt.add(p);
+        cityDropdown.removeItem(city);
         repaint();
     }
 
