@@ -115,10 +115,17 @@ public class BuildingPanel extends JPanel implements MouseListener {
         g.setColor(Color.BLACK);
         g.drawString("Select the city from dropdown", 1030, 150);
 
+        //draw cities
         g.setColor(Color.RED);
         for(Point p : pointsBuilt) {
-            g.fillRect(p.x-10, p.y-25, 20, 20); // will change depending on step and currentplayer
+            g.fillRect(p.x-10, p.y-25, 20, 20);
         }
+
+        //display num cities powered
+        if(!pointsBuilt.isEmpty() && pointsBuilt.size() <= 7)
+        g.fillRect(409 + pointsBuilt.size()*65, 18, 20, 20);
+        else if (pointsBuilt.size() > 7)
+        g.fillRect(418 + (pointsBuilt.size()-7)*32, 50, 20, 20);
 
         // player hand
         g.setColor(new Color(250, 226, 120));
