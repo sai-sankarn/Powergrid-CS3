@@ -1,3 +1,5 @@
+package Backend;
+
 public enum GameState {
     DETERMINE_ORDER,
     AUCTION,

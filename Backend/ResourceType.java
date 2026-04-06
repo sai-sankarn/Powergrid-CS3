@@ -1,3 +1,5 @@
+package Backend;
+
 public enum ResourceType {
     COAL,
     OIL,
