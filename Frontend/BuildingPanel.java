@@ -43,9 +43,10 @@ public class BuildingPanel extends JPanel implements MouseListener {
         powerplants = new ArrayList<>();
         elektro = 50;
         inventory = new ArrayList<>();
-        inventory.add(0);
-        inventory.add(0);
-        inventory.add(0);
+        inventory.add(10);
+        inventory.add(20);
+        inventory.add(30);
+        inventory.add(40);
 
         this.frame = frame;
         setLayout(null);
@@ -68,7 +69,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
     public void initUI() {
 
         cityDropdown = new JComboBox<>();
-        for(String city : cities) {
+        for (String city : cities) {
             cityDropdown.addItem(city);
         }
         cityDropdown.setMaximumRowCount(15);
@@ -117,30 +118,52 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         //draw cities
         g.setColor(Color.RED);
-        for(Point p : pointsBuilt) {
-            g.fillRect(p.x-10, p.y-25, 20, 20);
+        for (Point p : pointsBuilt) {
+            g.fillRect(p.x - 10, p.y - 25, 20, 20);
         }
 
         //display num cities powered
-        if(!pointsBuilt.isEmpty() && pointsBuilt.size() <= 7)
-        g.fillRect(409 + pointsBuilt.size()*65, 18, 20, 20);
-        else if (pointsBuilt.size() > 7)
-        g.fillRect(418 + (pointsBuilt.size()-7)*32, 50, 20, 20);
+        if (!pointsBuilt.isEmpty() && pointsBuilt.size() <= 7) {
+            g.fillRect(410 + pointsBuilt.size() * 65, 16, 20, 20);
+        } else if (pointsBuilt.size() > 7) {
+            g.fillRect(410 + (pointsBuilt.size() - 7) * 32, 47, 20, 20);
+        }
 
-        // player hand
+        //player hand
         g.setColor(new Color(250, 226, 120));
         g.fillOval(1460, 695, 120, 120);
         g.setColor(Color.WHITE);
         g.drawString(player, 1180, 700);
+
+        //powerplants owned
         g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
-        g.drawImage(powerplants.get(1), 900+180+5, 770, 180, 180, null);
-        g.drawImage(powerplants.get(2), 900+2*(180+5), 770, 180, 180, null);
+        g.drawImage(powerplants.get(1), 900 + 180 + 5, 770, 180, 180, null);
+        g.drawImage(powerplants.get(2), 900 + 2 * (180 + 5), 770, 180, 180, null);
+
+        //money
         g.setFont(new Font("Arial", Font.PLAIN, 50));
-        g.drawString("$"+Integer.toString(elektro), 1480, 770);
+        g.drawString("$" + Integer.toString(elektro), 1480, 770);
+
+        //inventory/resources
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        g.drawString(inventory.get(0).toString(), 1510, 850);
+        g.drawString(inventory.get(1).toString(), 1510, 880);
+        g.drawString(inventory.get(2).toString(), 1510, 910);
+        g.drawString(inventory.get(3).toString(), 1510, 940);
+        g.setColor(new Color(92, 50, 5));
+        g.fillRect(1475, 832, 25, 25);
+        g.setColor(Color.BLACK);
+        g.fillRect(1475, 862, 25, 25);
+        g.setColor(Color.YELLOW);
+        g.fillRect(1475, 892, 25, 25);
+        g.setColor(Color.RED);
+        g.fillRect(1475, 922, 25, 25);
     }
 
     private void handleBuild(Object item) {
-        if(item == null) return;
+        if (item == null) {
+            return;
+        }
 
         String city = item.toString();
         Point p = new Point(Constants.CityCoordinates.coordinates.get(city));
