@@ -6,6 +6,8 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -20,16 +22,31 @@ public class ResourcePanel extends JPanel implements MouseListener{
     JButton done;
 
     int[] list = {24,24,24,12};
-    
 
+    List<BufferedImage> powerplants;
+    List<Integer> inventory;
+    
     public ResourcePanel(PowergridFrame frame) {
         this.frame = frame;
         setLayout(null);
+
+        powerplants = new ArrayList<>();
+
         try {
             background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-3.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-4.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-5.png")));
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        inventory = new ArrayList<>();
+        inventory.add(10);
+        inventory.add(20);
+        inventory.add(30);
+        inventory.add(40);
+
         initUI();
         addMouseListener(this);
 
@@ -89,7 +106,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         done.setOpaque(true);
         done.setBorderPainted(false);
         done.setVisible(true);
-        done.addActionListener(e -> frame.showScreen("BIDDING"));
+        done.addActionListener(e -> frame.showScreen("BUILDING"));
         add(done);
     }
 
@@ -98,6 +115,38 @@ public class ResourcePanel extends JPanel implements MouseListener{
         g.drawImage(background, 0, 0, this.getWidth(), this.getHeight(), null);
         paintText(g);
         paintResourceIcons(g);
+        paintHand(g);
+    }
+
+    private void paintHand(Graphics g) {
+        g.setColor(new Color(250, 226, 120));
+        g.fillOval(1460, 695, 120, 120);
+        g.setColor(Color.WHITE);
+        g.drawString("Player 1", 1180, 700);
+
+        //powerplants owned
+        g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
+        g.drawImage(powerplants.get(1), 900 + 180 + 5, 770, 180, 180, null);
+        g.drawImage(powerplants.get(2), 900 + 2 * (180 + 5), 770, 180, 180, null);
+
+        //money
+        g.setFont(new Font("Arial", Font.PLAIN, 50));
+        g.drawString("$" + Integer.toString(50), 1480, 770);
+
+        //inventory/resources
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        g.drawString(inventory.get(0).toString(), 1510, 850);
+        g.drawString(inventory.get(1).toString(), 1510, 880);
+        g.drawString(inventory.get(2).toString(), 1510, 910);
+        g.drawString(inventory.get(3).toString(), 1510, 940);
+        g.setColor(new Color(92, 50, 5));
+        g.fillRect(1475, 832, 25, 25);
+        g.setColor(Color.BLACK);
+        g.fillRect(1475, 862, 25, 25);
+        g.setColor(Color.YELLOW);
+        g.fillRect(1475, 892, 25, 25);
+        g.setColor(Color.RED);
+        g.fillRect(1475, 922, 25, 25);
     }
 
     @Override

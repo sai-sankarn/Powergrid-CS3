@@ -129,7 +129,10 @@ public class BuildingPanel extends JPanel implements MouseListener {
             g.fillRect(410 + (pointsBuilt.size() - 7) * 32, 47, 20, 20);
         }
 
-        //player hand
+        paintHand(g);
+    }
+
+    private void paintHand(Graphics g) {
         g.setColor(new Color(250, 226, 120));
         g.fillOval(1460, 695, 120, 120);
         g.setColor(Color.WHITE);
