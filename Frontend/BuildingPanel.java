@@ -1,5 +1,5 @@
 package Frontend;
-
+import Backend.Player;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -28,7 +28,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
     JButton done;
 
     //hand
-    String player;
+    Player player;
     List<BufferedImage> powerplants;
     int elektro;
     List<Integer> inventory;
@@ -39,7 +39,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         cities = Constants.CityCoordinates.coordinates.keySet();
         pointsBuilt = new HashSet<>();
 
-        player = "Player 1";
+        player = new Player("Player 1", 50, "red");
         powerplants = new ArrayList<>();
         elektro = 50;
         inventory = new ArrayList<>();
@@ -136,7 +136,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         g.setColor(new Color(250, 226, 120));
         g.fillOval(1460, 695, 120, 120);
         g.setColor(Color.WHITE);
-        g.drawString(player, 1180, 700);
+        g.drawString(player.getName(), 1180, 700);
 
         //powerplants owned
         g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
@@ -168,10 +168,12 @@ public class BuildingPanel extends JPanel implements MouseListener {
             return;
         }
 
+        cityCost = 10;
         String city = item.toString();
         Point p = new Point(Constants.CityCoordinates.coordinates.get(city));
         pointsBuilt.add(p);
         cityDropdown.removeItem(city);
+        elektro -= cityCost;
         repaint();
     }
 
