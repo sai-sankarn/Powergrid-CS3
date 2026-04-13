@@ -1,4 +1,5 @@
 package Frontend;
+
 import Backend.Player;
 import java.awt.Color;
 import java.awt.Font;
@@ -61,7 +62,6 @@ public class BuildingPanel extends JPanel implements MouseListener {
         }
 
         this.setFocusable(true);
-        setLayout(null);
         initUI();
         addMouseListener(this);
     }
@@ -98,7 +98,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         done.setBorderPainted(false);
         done.setBounds(1330, 500, 200, 100);
         done.setVisible(true);
-        //done.addActionListener(e -> handleClick(done));
+        done.addActionListener(e -> handleDone());
         add(done);
 
     }
@@ -174,6 +174,10 @@ public class BuildingPanel extends JPanel implements MouseListener {
         pointsBuilt.add(p);
         cityDropdown.removeItem(city);
         repaint();
+    }
+
+    private void handleDone() {
+        frame.showScreen("BUREAUCRACY");
     }
 
     @Override
