@@ -1,5 +1,6 @@
 package Frontend;
 
+import Backend.Player;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -13,18 +14,36 @@ import javax.swing.*;
 public class BureaucracyPanel extends JPanel implements MouseListener {
     BufferedImage background;
     PowergridFrame frame;
+
+    //hand
     Player player;
+    List<BufferedImage> powerplants;
+    int elektro;
+    List<Integer> inventory;
 
     public BureaucracyPanel(PowergridFrame frame){
         this.frame = frame;
         setLayout(null);
 
         player = new Player("Player 1", 50, "red");
+        powerplants = new ArrayList<>();
+        elektro = 50;
+        inventory = new ArrayList<>();
+        inventory.add(10);
+        inventory.add(20);
+        inventory.add(30);
+        inventory.add(40);
+
+        this.frame = frame;
+        setLayout(null);
 
         try {
-            background = ImageIO.read(getClsss().getResource("/Images/background.png"));
+            background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-3.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-4.png")));
+            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-5.png")));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("exception error");
         }
 
         this.setFocusable(true);
@@ -43,7 +62,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
         g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         g.drawString("STEP 1, PHASE 5:", 1050, 49);
-        g.drawString("BUREAUCRACY", 1091, 90);
+        g.drawString("BUREAUCRACY", 1070, 90);
         paintHand(g);
     }
 
