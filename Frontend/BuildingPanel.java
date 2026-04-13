@@ -124,7 +124,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         //display num cities powered
         if (!pointsBuilt.isEmpty() && pointsBuilt.size() <= 7) {
-            g.fillRect(410 + pointsBuilt.size() * 65, 16, 20, 20);
+            g.fillRect(410 + pointsBuilt.size() * 64, 16, 20, 20);
         } else if (pointsBuilt.size() > 7) {
             g.fillRect(410 + (pointsBuilt.size() - 7) * 32, 47, 20, 20);
         }
@@ -168,12 +168,11 @@ public class BuildingPanel extends JPanel implements MouseListener {
             return;
         }
 
-        cityCost = 10;
         String city = item.toString();
+        cityCost = 10;
         Point p = new Point(Constants.CityCoordinates.coordinates.get(city));
         pointsBuilt.add(p);
         cityDropdown.removeItem(city);
-        elektro -= cityCost;
         repaint();
     }
 
