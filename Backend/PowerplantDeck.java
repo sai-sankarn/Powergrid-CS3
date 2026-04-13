@@ -72,7 +72,7 @@ public class PowerplantDeck {
         while (it.hasNext()) {
             Powerplant p = it.next();
             if (p.getNumber() == 13) {
-                card13 = it.next();
+                card13 = p;
                 it.remove();
                 break;
             }

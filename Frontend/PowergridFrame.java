@@ -1,6 +1,10 @@
 package Frontend;
 
+import Backend.*;
+
 import java.awt.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import javax.swing.*;
 
 public class PowergridFrame extends JFrame {
@@ -11,6 +15,10 @@ public class PowergridFrame extends JFrame {
     private CardLayout cardLayout;
     private JPanel mainContainer;
 
+    private RoundManager roundManager;
+
+    private BiddingPanel biddingPanel;
+
     public PowergridFrame(String name) {
         super(name);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -20,9 +28,20 @@ public class PowergridFrame extends JFrame {
         cardLayout = new CardLayout();
         mainContainer = new JPanel(cardLayout);
 
+        ArrayList<Player> players = new ArrayList<>();
+        for (int i=0;i<3;i++){
+            players.add(new Player("Sai",50,"Yellow"));
+            players.add(new Player("ChenXi",50,"Blue"));
+            players.add(new Player("Catherine",50,"Green"));
+
+        }
+        roundManager = new RoundManager(players, new Gameboard(), new ResourceMarket(), new PowerplantDeck());
+
+        biddingPanel = new BiddingPanel(this);
+
         mainContainer.add(new StartPanel(this), "START");
         mainContainer.add(new SetupPanel(this), "SETUP");
-        mainContainer.add(new BiddingPanel(this), "BIDDING");
+        mainContainer.add(biddingPanel, "BIDDING");
         mainContainer.add(new ResourcePanel(this), "RESOURCE");
         mainContainer.add(new BuildingPanel(this), "BUILDING");
 
@@ -38,5 +57,13 @@ public class PowergridFrame extends JFrame {
 				comp.requestFocusInWindow();
 			}
 		}
+
+        if (name.equals("BIDDING")){
+            biddingPanel.startAuctionPhase();
+        }
+    }
+
+    public RoundManager getRoundManager(){
+        return roundManager;
     }
 }

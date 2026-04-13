@@ -55,6 +55,8 @@ public class RoundManager {
         this.currentStep = 1;
         this.isFirstRound = true;
         this.currentState = GameState.DETERMINE_ORDER;
+
+        deck.setup(3);
     }
 
     // --- Getters ---
