@@ -119,6 +119,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
     }
 
     private void paintHand(Graphics g) {
+        g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(new Color(250, 226, 120));
         g.fillOval(1460, 695, 120, 120);
         g.setColor(Color.WHITE);

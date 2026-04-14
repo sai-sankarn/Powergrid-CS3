@@ -20,6 +20,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     List<BufferedImage> powerplants;
     int elektro;
     List<Integer> inventory;
+    JButton powerButton1;
+    JButton powerButton2;
+    JButton powerButton3;
+    List<JButton> powerButtons;
 
     public BureaucracyPanel(PowergridFrame frame){
         this.frame = frame;
@@ -53,6 +57,27 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
     public void initUI() {
 
+        //part of hand
+        powerButton1 = new JButton("POWER");
+        powerButton2 = new JButton("POWER");
+        powerButton3 = new JButton("POWER");
+        powerButtons = new ArrayList<>();
+        powerButtons.add(powerButton1);
+        powerButtons.add(powerButton2);
+        powerButtons.add(powerButton3);
+
+        for(int i=0; i<powerButtons.size(); i++) {
+            JButton b = powerButtons.get(i);
+            b.setBounds(900 + (i * 187), 715, 175, 45);
+            b.setFont(new Font("Arial",Font.BOLD,20));
+            b.setOpaque(true);
+            b.setBorderPainted(false);
+            b.setBackground(new Color(165, 175, 207));
+            b.setForeground(Color.WHITE);
+            b.setVisible(true);
+            b.addActionListener(e -> handlePower(b));
+            add(b);
+        }
     }
 
     public void paintComponent(Graphics g) {
@@ -63,10 +88,14 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         g.drawString("STEP 1, PHASE 5:", 1050, 49);
         g.drawString("BUREAUCRACY", 1070, 90);
+
+        g.setColor(Color.BLACK);
+        g.drawString("Choose power plants to power", 972, 470);
         paintHand(g);
     }
 
     private void paintHand(Graphics g) {
+        g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(new Color(250, 226, 120));
         g.fillOval(1460, 695, 120, 120);
         g.setColor(Color.WHITE);
@@ -95,6 +124,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         g.fillRect(1475, 892, 25, 25);
         g.setColor(Color.RED);
         g.fillRect(1475, 922, 25, 25);
+    }
+
+    private void handlePower(JButton b) {
+        //handle power
     }
 
     @Override
