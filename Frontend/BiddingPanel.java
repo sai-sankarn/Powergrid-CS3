@@ -211,6 +211,13 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
         if (!isAuctionActive) {
             // --- PASSING OUT OF THE ENTIRE AUCTION PHASE ---
+
+            // NEW RULE CHECK: Cannot pass out of the auction in round 1
+            if (rm.isFirstRound()) {
+                JOptionPane.showMessageDialog(this, "You cannot pass in the first round. You must select a plant to auction!");
+                return; // Stop the pass action here
+            }
+
             Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
             initiator.setPassedAuction(true);
             findNextInitiator();
@@ -229,19 +236,6 @@ public class BiddingPanel extends JPanel implements MouseListener {
             }
         }
         repaint();
-    }
-
-    private void refreshDropdown() {
-        RoundManager rm = frame.getRoundManager();
-        if (rm == null) return;
-
-        powerplantDropdown.removeAllItems();
-        powerplantDropdown.setVisible(true);
-
-        // Show only the 4 plants in the CURRENT market
-        for (Powerplant p : rm.getDeck().getCurrentMarket()) {
-            powerplantDropdown.addItem(p);
-        }
     }
 
     /**
@@ -306,6 +300,18 @@ public class BiddingPanel extends JPanel implements MouseListener {
                     g.drawImage(img, 996, 400, 228, 228, null);
                 }
             }
+        }
+    }
+
+    private void refreshDropdown() {
+        RoundManager rm = frame.getRoundManager();
+        if (rm == null) return;
+
+        powerplantDropdown.removeAllItems();
+        powerplantDropdown.setVisible(true);
+
+        for (Powerplant p : rm.getDeck().getCurrentMarket()) {
+            powerplantDropdown.addItem(p);
         }
     }
 

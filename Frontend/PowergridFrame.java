@@ -29,12 +29,10 @@ public class PowergridFrame extends JFrame {
         mainContainer = new JPanel(cardLayout);
 
         ArrayList<Player> players = new ArrayList<>();
-        for (int i=0;i<3;i++){
-            players.add(new Player("Sai",50,"Yellow"));
-            players.add(new Player("ChenXi",50,"Blue"));
-            players.add(new Player("Catherine",50,"Green"));
+        players.add(new Player("Sai",50,"Yellow"));
+        players.add(new Player("ChenXi",50,"Blue"));
+        players.add(new Player("Catherine",50,"Green"));
 
-        }
         roundManager = new RoundManager(players, new Gameboard(), new ResourceMarket(), new PowerplantDeck());
 
         biddingPanel = new BiddingPanel(this);
