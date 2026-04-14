@@ -12,6 +12,7 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class BureaucracyPanel extends JPanel implements MouseListener {
+
     BufferedImage background;
     PowergridFrame frame;
 
@@ -24,8 +25,9 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     JButton powerButton2;
     JButton powerButton3;
     List<JButton> powerButtons;
+    JButton done;
 
-    public BureaucracyPanel(PowergridFrame frame){
+    public BureaucracyPanel(PowergridFrame frame) {
         this.frame = frame;
         setLayout(null);
 
@@ -57,6 +59,17 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
     public void initUI() {
 
+        done = new JButton("DONE");
+        done.setFont(new Font("Arial", Font.BOLD, 35));
+        done.setBackground(new Color(237, 174, 174));
+        done.setForeground(Color.WHITE);
+        done.setOpaque(true);
+        done.setBorderPainted(false);
+        done.setBounds(1140, 540, 200, 80);
+        done.setVisible(true);
+        done.addActionListener(e -> handleDone());
+        add(done);
+
         //part of hand
         powerButton1 = new JButton("POWER");
         powerButton2 = new JButton("POWER");
@@ -66,10 +79,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         powerButtons.add(powerButton2);
         powerButtons.add(powerButton3);
 
-        for(int i=0; i<powerButtons.size(); i++) {
+        for (int i = 0; i < powerButtons.size(); i++) {
             JButton b = powerButtons.get(i);
             b.setBounds(900 + (i * 187), 715, 175, 45);
-            b.setFont(new Font("Arial",Font.BOLD,20));
+            b.setFont(new Font("Arial", Font.BOLD, 20));
             b.setOpaque(true);
             b.setBorderPainted(false);
             b.setBackground(new Color(165, 175, 207));
@@ -89,8 +102,9 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         g.drawString("STEP 1, PHASE 5:", 1050, 49);
         g.drawString("BUREAUCRACY", 1070, 90);
 
-        g.setColor(Color.BLACK);
-        g.drawString("Choose power plants to power", 972, 470);
+        g.setFont(new Font("Arial", Font.PLAIN, 40));
+        g.drawString("Choose power plants to power", 950, 470);
+
         paintHand(g);
     }
 
@@ -128,6 +142,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
     private void handlePower(JButton b) {
         //handle power
+    }
+
+    private void handleDone() {
+        //switch to next panel
     }
 
     @Override

@@ -92,7 +92,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         done = new JButton("DONE");
         done.setFont(new Font("Arial", Font.BOLD, 35));
-        done.setBackground(new Color(206, 127, 129));
+        done.setBackground(new Color(237, 174, 174));
         done.setForeground(Color.WHITE);
         done.setOpaque(true);
         done.setBorderPainted(false);
