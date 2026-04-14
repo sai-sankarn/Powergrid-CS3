@@ -1,264 +1,324 @@
 package Frontend;
 
+import Backend.Player;
+import Backend.Powerplant;
+import Backend.RoundManager;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.event.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
 public class BiddingPanel extends JPanel implements MouseListener {
-    BufferedImage background;
-    PowergridFrame frame;
-    ArrayList<BufferedImage> powerplants = new ArrayList<>();
-    JComboBox<Integer> powerplantDropdown;
-    JTextField bidInput;
-    JButton bidButton;
-    JButton passButton;
-    JButton replaceButton1;
-    JButton replaceButton2;
-    JButton replaceButton3;
-    List<JButton> replaceButtons;
-    private int selectedPlantIndex = -1;
-    private boolean selectionLocked = false;
-    int player = 1;
-    int firstPlayer = 1;
-    ArrayList<Integer> bids = new ArrayList<>();
-    ArrayList<Integer> powerplantsBought = new ArrayList<>();
-    List<Integer> inventory;
+    private BufferedImage background;
+    private PowergridFrame frame;
 
-    public BiddingPanel(PowergridFrame frame){
+    // UI Components
+    private JComboBox<Powerplant> powerplantDropdown;
+    private JTextField bidInput;
+    private JButton bidButton;
+    private JButton passButton;
+
+    // Image Cache to load powerplant images dynamically
+    private Map<Integer, BufferedImage> plantImages = new HashMap<>();
+
+    // Auction State Tracking
+    private boolean isAuctionActive = false;
+    private int auctionInitiatorIndex = 0; // Index in the RoundManager turn order
+    private List<Player> currentBidders = new ArrayList<>();
+    private int activeBidderIndex = 0; // Index in the currentBidders list
+
+    public BiddingPanel(PowergridFrame frame) {
         this.frame = frame;
         setLayout(null);
 
         try {
-            background = ImageIO.read(BiddingPanel.class.getResource("/Images/background.png"));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-3.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-4.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-5.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-6.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-7.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-8.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-9.png")));
-            powerplants.add(ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-10.png")));
-
+            background = ImageIO.read(getClass().getResource("/Images/background.png"));
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Could not load background image.");
         }
-
-        bids.add(0);
-        bids.add(0);
-        bids.add(0);
-
-        powerplantsBought.add(-1);
-        powerplantsBought.add(-1);
-        powerplantsBought.add(-1);
-
-        inventory = new ArrayList<>();
-        inventory.add(10);
-        inventory.add(20);
-        inventory.add(30);
-        inventory.add(40);
 
         initUI();
         addMouseListener(this);
     }
 
-    public void initUI(){
+    public void initUI() {
         powerplantDropdown = new JComboBox<>();
         powerplantDropdown.setBounds(1448, 219, 119, 20);
-        powerplantDropdown.setVisible(true);
-        for (int i=3;i<7;i++){
-            powerplantDropdown.addItem(i);
-        }
-        powerplantDropdown.addActionListener(e -> {
-        if (!selectionLocked) {
-            int selectedValue = (int) powerplantDropdown.getSelectedItem();
-
-            selectedPlantIndex = selectedValue - 3;
-
-            powerplantDropdown.setEnabled(false);
-            selectionLocked = true;
-
-            repaint();
-        }
-    });
         add(powerplantDropdown);
-        //----------------------------------------------------------
+
         bidInput = new JTextField();
-        bidInput.setBounds(1341,407,120,20);
-        bidInput.setVisible(true);
+        bidInput.setBounds(1341, 407, 120, 20);
         add(bidInput);
-        //-------------------------------------------------------
+
         bidButton = new JButton("BID");
-        bidButton.setBounds(1341,475,120,40);
-        bidButton.setFont(new Font("Arial",Font.BOLD,20));
+        bidButton.setBounds(1341, 475, 120, 40);
+        bidButton.setFont(new Font("Arial", Font.BOLD, 20));
+        bidButton.setBackground(new Color(125, 203, 178));
+        bidButton.setForeground(Color.white);
         bidButton.setOpaque(true);
         bidButton.setBorderPainted(false);
-        bidButton.setBackground(new Color(125,203,178));
-        bidButton.setForeground(Color.white);
-        bidButton.setVisible(true);
-        bidButton.addActionListener(e -> handleBid(Integer.parseInt(bidInput.getText())));
+        bidButton.addActionListener(e -> {
+            try {
+                int amount = Integer.parseInt(bidInput.getText());
+                handleBid(amount);
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(this, "Please enter a valid number.");
+            }
+        });
         add(bidButton);
-        //-----------------------------------------------------
+
         passButton = new JButton("PASS");
-        passButton.setBounds(1341,551,120,40);
-        passButton.setFont(new Font("Arial",Font.BOLD,20));
+        passButton.setBounds(1341, 551, 120, 40);
+        passButton.setFont(new Font("Arial", Font.BOLD, 20));
+        passButton.setBackground(new Color(237, 174, 174));
+        passButton.setForeground(Color.white);
         passButton.setOpaque(true);
         passButton.setBorderPainted(false);
-        passButton.setBackground(new Color(237,174,174));
-        passButton.setForeground(Color.white);
-        passButton.setVisible(true);
         passButton.addActionListener(e -> handlePass());
         add(passButton);
+    }
 
-        //part of hand
-        replaceButton1 = new JButton("REPLACE");
-        replaceButton2 = new JButton("REPLACE");
-        replaceButton3 = new JButton("REPLACE");
-        replaceButtons = new ArrayList<>();
-        replaceButtons.add(replaceButton1);
-        replaceButtons.add(replaceButton2);
-        replaceButtons.add(replaceButton3);
+    /**
+     * Called by PowergridFrame when switching to this screen to reset state
+     */
+    public void startAuctionPhase() {
+        isAuctionActive = false;
+        auctionInitiatorIndex = 0;
+        findNextInitiator();
+    }
 
-        for(int i=0; i<replaceButtons.size(); i++) {
-            JButton b = replaceButtons.get(i);
-            b.setBounds(900 + (i * 187), 715, 175, 45);
-            b.setFont(new Font("Arial",Font.BOLD,20));
-            b.setOpaque(true);
-            b.setBorderPainted(false);
-            b.setBackground(new Color(165, 175, 207));
-            b.setForeground(Color.WHITE);
-            b.setVisible(true);
-            b.addActionListener(e -> handleReplace());
-            add(b);
+    /**
+     * Finds the next player in turn order who needs to initiate an auction.
+     * If all players are done, ends the phase.
+     */
+    private void findNextInitiator() {
+        RoundManager rm = frame.getRoundManager();
+        List<Player> turnOrder = rm.getTurnOrder();
+
+        while (auctionInitiatorIndex < turnOrder.size()) {
+            Player p = turnOrder.get(auctionInitiatorIndex);
+            // Initiator is someone who hasn't bought a plant and hasn't passed out entirely
+            if (!p.isBoughtThisRound() && !p.isPassedAuction()) {
+                refreshDropdown();
+                repaint();
+                return; // Found the next initiator
+            }
+            auctionInitiatorIndex++;
+        }
+
+        // If we reach here, the auction phase is completely over
+        endAuctionPhase();
+    }
+
+    private void endAuctionPhase() {
+        RoundManager rm = frame.getRoundManager();
+        rm.nextPhase();
+        frame.showScreen("RESOURCE");
+    }
+
+    private void setupBiddersForAuction(Player initiator) {
+        RoundManager rm = frame.getRoundManager();
+        currentBidders.clear();
+
+        // Everyone who hasn't bought a plant joins the bidding war
+        for (Player p : rm.getTurnOrder()) {
+            if (!p.isBoughtThisRound()) {
+                currentBidders.add(p);
+            }
+        }
+
+        // The initiator just bid, so it's the next eligible person's turn
+        activeBidderIndex = currentBidders.indexOf(initiator);
+        advanceBidder();
+    }
+
+    private void advanceBidder() {
+        activeBidderIndex = (activeBidderIndex + 1) % currentBidders.size();
+
+        // If everyone else passed and only 1 bidder remains, they win.
+        if (currentBidders.size() == 1) {
+            resolveAuction();
         }
     }
 
-    public void paintComponent(Graphics g){
+    private void resolveAuction() {
+        RoundManager rm = frame.getRoundManager();
+        Player winner = rm.resolveAuction();
+
+        JOptionPane.showMessageDialog(this, winner.getName() + " won the plant!");
+
+        isAuctionActive = false;
+        currentBidders.clear();
+        bidInput.setText("");
+
+        // The initiator's turn starts again if someone ELSE won their plant.
+        // If the initiator won, the loop in findNextInitiator will automatically skip them.
+        findNextInitiator();
+    }
+
+    public void handleBid(int amount) {
+        RoundManager rm = frame.getRoundManager();
+
+        if (!isAuctionActive) {
+            // --- STARTING A NEW AUCTION ---
+            Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
+            Powerplant selectedPlant = (Powerplant) powerplantDropdown.getSelectedItem();
+
+            if (selectedPlant == null) return;
+
+            if (amount < selectedPlant.getNumber()) {
+                JOptionPane.showMessageDialog(this, "Starting bid must be at least the plant's face value.");
+                return;
+            }
+
+            boolean success = rm.startAuction(initiator, selectedPlant);
+            if (success) {
+                // If they bid higher than face value, set that bid
+                if (amount > selectedPlant.getNumber()) {
+                    rm.placeBid(initiator, amount);
+                }
+                isAuctionActive = true;
+                powerplantDropdown.setVisible(false); // Hide dropdown during bidding
+                setupBiddersForAuction(initiator);
+            } else {
+                JOptionPane.showMessageDialog(this, "Cannot afford this plant.");
+            }
+        } else {
+            // --- PLACING A BID IN AN ACTIVE AUCTION ---
+            Player currentBidder = currentBidders.get(activeBidderIndex);
+            boolean success = rm.placeBid(currentBidder, amount);
+
+            if (success) {
+                advanceBidder();
+            } else {
+                JOptionPane.showMessageDialog(this, "Bid must be higher than current bid and affordable.");
+            }
+        }
+        repaint();
+    }
+
+    public void handlePass() {
+        RoundManager rm = frame.getRoundManager();
+
+        if (!isAuctionActive) {
+            // --- PASSING OUT OF THE ENTIRE AUCTION PHASE ---
+
+            // NEW RULE CHECK: Cannot pass out of the auction in round 1
+            if (rm.isFirstRound()) {
+                JOptionPane.showMessageDialog(this, "You cannot pass in the first round. You must select a plant to auction!");
+                return; // Stop the pass action here
+            }
+
+            Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
+            initiator.setPassedAuction(true);
+            findNextInitiator();
+        } else {
+            // --- PASSING ON THE CURRENT PLANT ---
+            currentBidders.remove(activeBidderIndex);
+
+            // Adjust index because the list shrank
+            if (activeBidderIndex >= currentBidders.size()) {
+                activeBidderIndex = 0;
+            }
+
+            // If only one person left, they win automatically
+            if (currentBidders.size() == 1) {
+                resolveAuction();
+            }
+        }
+        repaint();
+    }
+
+    /**
+     * Helper to load and cache plant images on demand
+     */
+    private BufferedImage getPlantImage(int plantNumber) {
+        if (!plantImages.containsKey(plantNumber)) {
+            try {
+                BufferedImage img = ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-" + plantNumber + ".png"));
+                plantImages.put(plantNumber, img);
+            } catch (Exception e) {
+                System.err.println("Missing image for plant: " + plantNumber);
+                return null;
+            }
+        }
+        return plantImages.get(plantNumber);
+    }
+
+    @Override
+    public void paintComponent(Graphics g) {
         super.paintComponent(g);
-        g.drawImage(background, 0,0, this.getWidth(), this.getHeight(), null);
-        int x=918;
-        for (int i=0;i<4;i++){
-            if (i!=selectedPlantIndex){
-                g.drawImage(powerplants.get(i), x, 209, 122, 122, null);
-            }
-            x+=132;
-        }
-        if (selectionLocked){
-            g.drawImage(powerplants.get(selectedPlantIndex),996,400,228,228,null);
+        if (background != null) {
+            g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         }
 
-        g.setFont(new Font("Arial", Font.BOLD, 30));
-        g.drawString("Player: " + player, 963,150);
-        System.out.println(bids);
+        RoundManager rm = frame.getRoundManager();
+        if (rm == null || rm.getTurnOrder().isEmpty()) return;
 
-        paintHand(g);
-    }
-
-    private void paintHand(Graphics g) {
-        g.setColor(new Color(250, 226, 120));
-        g.fillOval(1460, 695, 120, 120);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
-        g.drawString("Player 1", 1180, 700);
 
-        //powerplants owned
-        g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
-        g.drawImage(powerplants.get(1), 900 + 180 + 5, 770, 180, 180, null);
-        g.drawImage(powerplants.get(2), 900 + 2 * (180 + 5), 770, 180, 180, null);
+        if (!isAuctionActive) {
+            // --- UI FOR SELECTION PHASE ---
+            Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
+            g.drawString("Waiting for: " + initiator.getName() + " to pick a plant or Pass", 963, 100);
 
-        //money
-        g.setFont(new Font("Arial", Font.PLAIN, 50));
-        g.drawString("$" + Integer.toString(50), 1480, 770);
+            // Draw all plants in the current market
+            int x = 918;
+            for (Powerplant p : rm.getDeck().getCurrentMarket()) {
+                BufferedImage img = getPlantImage(p.getNumber());
+                if (img != null) {
+                    g.drawImage(img, x, 209, 122, 122, null);
+                }
+                else {
+                    System.out.println("No image for " + p.getNumber());
+                }
+                x += 132;
+            }
 
-        //inventory/resources
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.drawString(inventory.get(0).toString(), 1510, 850);
-        g.drawString(inventory.get(1).toString(), 1510, 880);
-        g.drawString(inventory.get(2).toString(), 1510, 910);
-        g.drawString(inventory.get(3).toString(), 1510, 940);
-        g.setColor(new Color(92, 50, 5));
-        g.fillRect(1475, 832, 25, 25);
-        g.setColor(Color.BLACK);
-        g.fillRect(1475, 862, 25, 25);
-        g.setColor(Color.YELLOW);
-        g.fillRect(1475, 892, 25, 25);
-        g.setColor(Color.RED);
-        g.fillRect(1475, 922, 25, 25);
+        } else {
+            // --- UI FOR BIDDING PHASE ---
+            Player activeBidder = currentBidders.get(activeBidderIndex);
+            g.drawString("Current Turn: " + activeBidder.getName(), 963, 100);
+            g.drawString("Highest Bidder: " + rm.getCurrentHighestBidder().getName(), 963, 140);
+            g.drawString("Current Bid: " + rm.getCurrentHighBid() + " Elektro", 963, 180);
 
-        //replace buttons
-        g.setColor(new Color(164, 177, 219));
-        
-    }
-
-    public void handleBid(int amount){
-        bids.set(player-1, amount);
-        int numberOfNulls = 0;
-        for (int i=0;i<bids.size();i++){
-            if (bids.get(i)==-1){
-                numberOfNulls++;
+            // Draw the plant currently being auctioned in the center
+            Powerplant auctionPlant = rm.getCurrentAuctionPlant();
+            if (auctionPlant != null) {
+                BufferedImage img = getPlantImage(auctionPlant.getNumber());
+                if (img != null) {
+                    g.drawImage(img, 996, 400, 228, 228, null);
+                }
             }
         }
-        if (numberOfNulls==2){
-            frame.showScreen("RESOURCE");
+    }
+
+    private void refreshDropdown() {
+        RoundManager rm = frame.getRoundManager();
+        if (rm == null) return;
+
+        powerplantDropdown.removeAllItems();
+        powerplantDropdown.setVisible(true);
+
+        for (Powerplant p : rm.getDeck().getCurrentMarket()) {
+            powerplantDropdown.addItem(p);
         }
-        else {
-            if (player==3){
-                player=1;
-            }
-            else {player++;}
-        }
-        repaint();
     }
 
-    public void handlePass(){
-        bids.set(player-1,-1);
-        int numberOfNulls = 0;
-        for (int i=0;i<bids.size();i++){
-            if (bids.get(i)==-1){
-                numberOfNulls++;
-            }
-        }
-        if (numberOfNulls==2){
-            frame.showScreen("RESOURCE");
-        }
-        else {
-            if (player==3){
-                player=1;
-            }
-            else {player++;}
-        }
-        repaint();
-    }
-
-    public void handleReplace() {
-        //handle replacing powerplants in hand
-    }
-
-
-    @Override
-    public void mouseClicked(MouseEvent e) {
-        System.out.println("(" + e.getX() + ", " + e.getY() + ")");
-    }
-    @Override
-    public void mousePressed(MouseEvent e) {
-    }
-    @Override
-    public void mouseReleased(MouseEvent e) {
-    }
-    @Override
-    public void mouseEntered(MouseEvent e) {
-    }
-    @Override
-    public void mouseExited(MouseEvent e) {
-    }
-
-
-
-
-
-
+    // Unused MouseListener methods
+    @Override public void mouseClicked(MouseEvent e) {}
+    @Override public void mousePressed(MouseEvent e) {}
+    @Override public void mouseReleased(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e) {}
+    @Override public void mouseExited(MouseEvent e) {}
 }
