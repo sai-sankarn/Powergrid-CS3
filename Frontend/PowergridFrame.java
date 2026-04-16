@@ -1,9 +1,7 @@
 package Frontend;
 
 import Backend.*;
-
 import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import javax.swing.*;
 
@@ -43,6 +41,7 @@ public class PowergridFrame extends JFrame {
         mainContainer.add(new ResourcePanel(this), "RESOURCE");
         mainContainer.add(new BuildingPanel(this), "BUILDING");
         mainContainer.add(new BureaucracyPanel(this), "BUREAUCRACY");
+        mainContainer.add(new ResultsPanel(this), "RESULTS");
 
         add(mainContainer);
         setVisible(true);

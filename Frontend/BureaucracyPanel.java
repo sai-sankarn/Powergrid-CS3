@@ -145,7 +145,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     }
 
     private void handleDone() {
-        //switch to next panel
+        frame.showScreen("RESULTS");
     }
 
     @Override
