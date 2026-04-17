@@ -1,6 +1,9 @@
 package Frontend;
 
+import Backend.City;
+import Backend.Gameboard;
 import Backend.Player;
+import Backend.RoundManager;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -9,7 +12,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.imageio.ImageIO;
@@ -17,30 +19,33 @@ import javax.swing.*;
 
 public class BuildingPanel extends JPanel implements MouseListener {
 
-    BufferedImage background;
-    PowergridFrame frame;
+    private BufferedImage background;
+    private PowergridFrame frame;
+    private RoundManager rm;
+    private Gameboard gb;
 
-    int cityCost;
-    Set<String> cities;
-    Set<Point> pointsBuilt;
+    private int cityCost;
+    private Set<String> cities;
 
-    JComboBox cityDropdown;
-    JButton build;
-    JButton done;
+    private JComboBox cityDropdown;
+    private JButton build;
+    private JButton done;
 
     //hand
-    Player player;
-    List<BufferedImage> powerplants;
-    int elektro;
-    List<Integer> inventory;
+    private Player player;
+    private List<BufferedImage> powerplants;
+    private int elektro;
+    private List<Integer> inventory;
 
     public BuildingPanel(PowergridFrame frame) {
+        rm = frame.getRoundManager();
+        gb = rm.getBoard();
+
         // TEMPORARY VALUES
         cityCost = 10;
         cities = Constants.CityCoordinates.coordinates.keySet();
-        pointsBuilt = new HashSet<>();
 
-        player = new Player("Player 1", 50, "red");
+        player = rm.currentPlayer();
         powerplants = new ArrayList<>();
         elektro = 50;
         inventory = new ArrayList<>();
@@ -118,18 +123,24 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         //draw cities
         g.setColor(Color.RED);
-        for (Point p : pointsBuilt) {
+        for (City c : player.getOwnedCities()) {
+            Point p = new Point(Constants.CityCoordinates.coordinates.get(c.toString()));
             g.fillRect(p.x - 10, p.y - 25, 20, 20);
         }
 
         //display num cities powered
-        if (!pointsBuilt.isEmpty() && pointsBuilt.size() <= 7) {
-            g.fillRect(410 + pointsBuilt.size() * 64, 16, 20, 20);
-        } else if (pointsBuilt.size() > 7) {
-            g.fillRect(410 + (pointsBuilt.size() - 7) * 32, 47, 20, 20);
+        if (!player.getOwnedCities().isEmpty() && player.getOwnedCities().size() <= 7) {
+            g.fillRect(410 + player.getOwnedCities().size() * 64, 16, 20, 20);
+        } else if (player.getOwnedCities().size() > 7) {
+            g.fillRect(410 + (player.getOwnedCities().size() - 7) * 32, 47, 20, 20);
         }
 
         paintHand(g);
+    }
+
+    private void startBuildingPhase() {
+        player = rm.currentPlayer();
+        System.out.println("building phase started, current player: "+player.getName());
     }
 
     private void paintHand(Graphics g) {
@@ -146,7 +157,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         //money
         g.setFont(new Font("Arial", Font.PLAIN, 50));
-        g.drawString("$" + Integer.toString(elektro), 1480, 770);
+        g.drawString("$" + player.getMoney(), 1480, 770);
 
         //inventory/resources
         g.setFont(new Font("Arial", Font.PLAIN, 20));
@@ -170,9 +181,8 @@ public class BuildingPanel extends JPanel implements MouseListener {
         }
 
         String city = item.toString();
-        cityCost = 10;
-        Point p = new Point(Constants.CityCoordinates.coordinates.get(city));
-        pointsBuilt.add(p);
+        cityCost = rm.buildCity(player, gb.getCityByName(city));
+        System.out.println(player.getName()+" built "+city+" for "+cityCost);
         cityDropdown.removeItem(city);
         repaint();
     }

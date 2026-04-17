@@ -59,8 +59,11 @@ public class ResultsPanel extends JPanel implements MouseListener {
         g.setFont(new Font("Arial", Font.BOLD, 30));
         g.drawString("CITIES", 1185, 175);
         g.drawString("POWERED", 1150, 230);
-        g.drawString("MONEY", 1360, 175);
-        g.drawString("EARNED", 1350, 230);
+        g.drawString("MONEY", 1362, 175);
+        g.drawString("EARNED", 1355, 230);
+
+        g.setFont(new Font("Arial", Font.BOLD, 60));
+        g.drawString("PLAYER 1 WINS!", 1000, 860);
     }
 
     @Override
