@@ -86,13 +86,13 @@ public class ResourceMarket {
      */
     public void initializeStartingResources() {
         // Coal: first 3 slots (cheapest) filled to max
-        for (int i = 0; i < 3; i++) coalSlots[i] = COAL_MAX_PER_SLOT;
+        for (int i = 0; i < 8; i++) coalSlots[i] = COAL_MAX_PER_SLOT;
         // Oil: slots 3-5 filled
-        for (int i = 3; i < 6; i++) oilSlots[i] = OIL_MAX_PER_SLOT;
+        for (int i = 2; i < 8; i++) oilSlots[i] = OIL_MAX_PER_SLOT;
         // Trash: slots 5-7 filled
         for (int i = 5; i < 8; i++) trashSlots[i] = TRASH_MAX_PER_SLOT;
         // Uranium: slots 9-11 filled (most expensive)
-        for (int i = 9; i < 12; i++) uraniumSlots[i] = URANIUM_MAX_PER_SLOT;
+        for (int i = 10; i < 12; i++) uraniumSlots[i] = URANIUM_MAX_PER_SLOT;
     }
 
     // --- Cost calculation ---

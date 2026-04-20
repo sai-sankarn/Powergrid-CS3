@@ -1,8 +1,6 @@
 package Frontend;
 
-import Backend.Player;
-import Backend.Powerplant;
-import Backend.RoundManager;
+import Backend.*;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -10,10 +8,7 @@ import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -154,14 +149,16 @@ public class BiddingPanel extends JPanel implements MouseListener {
         RoundManager rm = frame.getRoundManager();
         Player winner = rm.resolveAuction();
 
-        JOptionPane.showMessageDialog(this, winner.getName() + " won the plant!");
-
+        // FIX: Reset the state BEFORE showing the blocking JOptionPane
         isAuctionActive = false;
         currentBidders.clear();
         bidInput.setText("");
 
+        if (winner != null) {
+            JOptionPane.showMessageDialog(this, winner.getName() + " won the plant!");
+        }
+
         // The initiator's turn starts again if someone ELSE won their plant.
-        // If the initiator won, the loop in findNextInitiator will automatically skip them.
         findNextInitiator();
     }
 
@@ -272,9 +269,12 @@ public class BiddingPanel extends JPanel implements MouseListener {
             Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
             g.drawString("Waiting for: " + initiator.getName() + " to pick a plant or Pass", 963, 100);
 
-            // Draw all plants in the current market
+            // FIX: Copy and sort the market before drawing
             int x = 918;
-            for (Powerplant p : rm.getDeck().getCurrentMarket()) {
+            List<Powerplant> sortedMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
+            sortedMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
+
+            for (Powerplant p : sortedMarket) {
                 BufferedImage img = getPlantImage(p.getNumber());
                 if (img != null) {
                     g.drawImage(img, x, 209, 122, 122, null);
@@ -289,7 +289,12 @@ public class BiddingPanel extends JPanel implements MouseListener {
             // --- UI FOR BIDDING PHASE ---
             Player activeBidder = currentBidders.get(activeBidderIndex);
             g.drawString("Current Turn: " + activeBidder.getName(), 963, 100);
-            g.drawString("Highest Bidder: " + rm.getCurrentHighestBidder().getName(), 963, 140);
+
+            // FIX: Safely check if highest bidder is null to prevent NPE
+            Player highestBidder = rm.getCurrentHighestBidder();
+            String bidderName = (highestBidder != null) ? highestBidder.getName() : "None";
+            g.drawString("Highest Bidder: " + bidderName, 963, 140);
+
             g.drawString("Current Bid: " + rm.getCurrentHighBid() + " Elektro", 963, 180);
 
             // Draw the plant currently being auctioned in the center
@@ -301,6 +306,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 }
             }
         }
+
+        paintResourceIcons(g);
+        paintHand(g);
     }
 
     private void refreshDropdown() {
@@ -310,10 +318,195 @@ public class BiddingPanel extends JPanel implements MouseListener {
         powerplantDropdown.removeAllItems();
         powerplantDropdown.setVisible(true);
 
-        for (Powerplant p : rm.getDeck().getCurrentMarket()) {
+        // FIX: Copy to a List and explicitly sort it
+        List<Powerplant> sortedMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
+        sortedMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
+
+        for (Powerplant p : sortedMarket) {
             powerplantDropdown.addItem(p);
         }
     }
+
+    private void paintHand(Graphics g) {
+        RoundManager rm = frame.getRoundManager();
+        if (rm == null || rm.getTurnOrder().isEmpty()) return;
+
+        Player player;
+
+        // Determine who the current player is based on the auction state
+        if (isAuctionActive) {
+            // An auction is happening: get the person whose turn it is to bid
+            if (currentBidders.isEmpty() || activeBidderIndex >= currentBidders.size()) return;
+            player = currentBidders.get(activeBidderIndex);
+        } else {
+            // No auction is happening: get the person whose turn it is to pick a plant
+            if (auctionInitiatorIndex >= rm.getTurnOrder().size()) return;
+            player = rm.getTurnOrder().get(auctionInitiatorIndex);
+        }
+
+        if (player == null) return;
+
+        // Player colour oval
+        Color playerColor = parseColor(player.getColor());
+        g.setColor(playerColor);
+        g.fillOval(1460, 695, 120, 120);
+
+        // Player name
+        g.setFont(new Font("Arial", Font.BOLD, 22));
+        g.setColor(Color.WHITE);
+        g.drawString(player.getName(), 1180, 700);
+
+        // Powerplants owned – load images dynamically by plant number
+        List<Powerplant> plants = new ArrayList<>(player.getPowerplants());
+        int px = 900;
+        for (int i = 0; i < Math.min(plants.size(), 3); i++) {
+            int plantNum = plants.get(i).getNumber();
+            BufferedImage img = getPlantImage(plantNum);
+            if (img != null) {
+                g.drawImage(img, px, 770, 180, 180, null);
+            } else {
+                // Fallback: draw a labelled rectangle if image missing
+                g.setColor(new Color(60, 60, 80));
+                g.fillRect(px, 770, 180, 180);
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 28));
+                g.drawString("#" + plantNum, px + 55, 870);
+            }
+            px += 185;
+        }
+
+        // Money
+        g.setFont(new Font("Arial", Font.PLAIN, 50));
+        g.setColor(Color.WHITE);
+        g.drawString("$" + player.getMoney(), 1480, 770);
+
+        // Resource inventory (stored across all their powerplants)
+        paintInventory(g, player);
+    }
+
+    private void paintInventory(Graphics g, Player player) {
+        // Retrieve totals – assumes Player exposes getStoredResources()
+        // returning Map<ResourceType, Integer> (sum across all powerplants).
+        Map<ResourceType, Integer> stored;
+        try {
+            stored = player.getStoredResources();
+        } catch (Exception ex) {
+            stored = Collections.emptyMap();
+        }
+
+        int coal    = stored.getOrDefault(ResourceType.COAL,    0);
+        int oil     = stored.getOrDefault(ResourceType.OIL,     0);
+        int trash   = stored.getOrDefault(ResourceType.TRASH,   0);
+        int uranium = stored.getOrDefault(ResourceType.URANIUM, 0);
+
+        // Colour swatches
+        g.setColor(new Color(92, 50, 5));
+        g.fillRect(1475, 832, 25, 25);
+        g.setColor(Color.BLACK);
+        g.fillRect(1475, 862, 25, 25);
+        g.setColor(Color.YELLOW);
+        g.fillRect(1475, 892, 25, 25);
+        g.setColor(Color.RED);
+        g.fillRect(1475, 922, 25, 25);
+
+        // Counts
+        g.setFont(new Font("Arial", Font.PLAIN, 20));
+        g.setColor(Color.WHITE);
+        g.drawString(String.valueOf(coal),    1510, 850);
+        g.drawString(String.valueOf(oil),     1510, 880);
+        g.drawString(String.valueOf(trash),   1510, 910);
+        g.drawString(String.valueOf(uranium), 1510, 940);
+    }
+
+    private void paintResourceIcons(Graphics g) {
+        ResourceMarket market = frame.getRoundManager().getResourceMarket();
+
+        int coalCount    = market.getAvailableAmount(ResourceType.COAL);
+        int oilCount     = market.getAvailableAmount(ResourceType.OIL);
+        int trashCount   = market.getAvailableAmount(ResourceType.TRASH);
+        int uraniumCount = market.getAvailableAmount(ResourceType.URANIUM);
+
+        // --- COAL (brown rectangles, up to 24) ---
+        int x = 769, y = 902;
+        for (int i = 0; i < coalCount; i++) {
+            g.setColor(new Color(99, 68, 38));
+            g.fillRect(x, y, 18, 12);
+            switch (i) {
+                case 2  -> x = 671;
+                case 5  -> x = 572;
+                case 8  -> x = 474;
+                case 11 -> x = 376;
+                case 14 -> { x = 276; y = 906; }
+                case 17 -> x = 180;
+                case 20 -> x = 81;
+                default -> x -= 28;
+            }
+        }
+
+        // --- OIL (dark rectangles, up to 24) ---
+        x = 753; y = 922;
+        for (int i = 0; i < oilCount; i++) {
+            g.setColor(new Color(12, 37, 48));
+            g.fillRect(x, y, 12, 11);
+            switch (i) {
+                case 2  -> { x = 655; y = 924; }
+                case 5  -> x = 556;
+                case 8  -> x = 458;
+                case 11 -> x = 359;
+                case 14 -> x = 260;
+                case 17 -> x = 160;
+                case 20 -> x = 63;
+                default -> x -= 21;
+            }
+        }
+
+        // --- TRASH (yellow rectangles, up to 24) ---
+        x = 769; y = 940;
+        for (int i = 0; i < trashCount; i++) {
+            g.setColor(new Color(245, 213, 84));
+            g.fillRect(x, y, 18, 12);
+            switch (i) {
+                case 2  -> x = 671;
+                case 5  -> x = 572;
+                case 8  -> x = 474;
+                case 11 -> x = 376;
+                case 14 -> { x = 276; y = 945; }
+                case 17 -> x = 180;
+                case 20 -> x = 81;
+                default -> x -= 28;
+            }
+        }
+
+        // --- URANIUM (red rectangles, up to 12) ---
+        x = 848; y = 936;
+        int w = 16, h = 14;
+        for (int i = 0; i < uraniumCount; i++) {
+            g.setColor(new Color(213, 82, 68));
+            g.fillRect(x, y, w, h);
+            switch (i) {
+                case 0 -> { x = 808; y = 937; }
+                case 1 -> { x = 848; y = 909; }
+                case 2 -> { x = 809; y = 902; }
+                case 3 -> { x = 774; y = 925; w = 13; h = 10; }
+                default -> x -= 98;
+            }
+        }
+    }
+
+    private Color parseColor(String colorName) {
+        if (colorName == null) return Color.LIGHT_GRAY;
+        return switch (colorName.toLowerCase()) {
+            case "red"    -> new Color(220, 60,  60);
+            case "blue"   -> new Color(60,  100, 200);
+            case "green"  -> new Color(60,  160, 80);
+            case "yellow" -> new Color(220, 190, 50);
+            case "purple" -> new Color(130, 60,  180);
+            case "black"  -> Color.DARK_GRAY;
+            default       -> Color.LIGHT_GRAY;
+        };
+    }
+
+
 
     // Unused MouseListener methods
     @Override public void mouseClicked(MouseEvent e) {}
