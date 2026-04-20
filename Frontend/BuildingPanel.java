@@ -12,7 +12,9 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -33,7 +35,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
     //hand
     private Player player;
-    private List<BufferedImage> powerplants;
+    private Map<Integer, BufferedImage> plantImages;
     private int elektro;
     private List<Integer> inventory;
 
@@ -46,7 +48,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         cities = Constants.CityCoordinates.coordinates.keySet();
 
         player = rm.currentPlayer();
-        powerplants = new ArrayList<>();
+        plantImages = new HashMap<>();
         elektro = 50;
         inventory = new ArrayList<>();
         inventory.add(10);
@@ -59,9 +61,6 @@ public class BuildingPanel extends JPanel implements MouseListener {
 
         try {
             background = ImageIO.read(getClass().getResource("/Images/background.png"));
-            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-3.png")));
-            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-4.png")));
-            powerplants.add(ImageIO.read(getClass().getResource("/Images/powerplant-5.png")));
         } catch (Exception e) {
             System.out.println("exception error");
         }
@@ -151,9 +150,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         g.drawString(player.getName(), 1180, 700);
 
         //powerplants owned
-        g.drawImage(powerplants.get(0), 900, 770, 180, 180, null);
-        g.drawImage(powerplants.get(1), 900 + 180 + 5, 770, 180, 180, null);
-        g.drawImage(powerplants.get(2), 900 + 2 * (180 + 5), 770, 180, 180, null);
+        
 
         //money
         g.setFont(new Font("Arial", Font.PLAIN, 50));
@@ -185,6 +182,19 @@ public class BuildingPanel extends JPanel implements MouseListener {
         System.out.println(player.getName()+" built "+city+" for "+cityCost);
         cityDropdown.removeItem(city);
         repaint();
+    }
+
+    private BufferedImage getPlantImage(int plantNumber) {
+        if (!plantImages.containsKey(plantNumber)) {
+            try {
+                BufferedImage img = ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-" + plantNumber + ".png"));
+                plantImages.put(plantNumber, img);
+            } catch (Exception e) {
+                System.err.println("Missing image for plant: " + plantNumber);
+                return null;
+            }
+        }
+        return plantImages.get(plantNumber);
     }
 
     private void handleDone() {

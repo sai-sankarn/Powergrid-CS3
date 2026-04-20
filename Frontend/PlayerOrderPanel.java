@@ -1,21 +1,22 @@
 package Frontend;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-public class ResultsPanel extends JPanel implements MouseListener {
+public class PlayerOrderPanel extends JPanel implements MouseListener {
+
     private BufferedImage background;
     private PowergridFrame frame;
 
-    public ResultsPanel(PowergridFrame frame) {
+    private JButton continueButton;
+
+    public PlayerOrderPanel(PowergridFrame frame) {
         this.frame = frame;
         setLayout(null);
 
@@ -30,7 +31,17 @@ public class ResultsPanel extends JPanel implements MouseListener {
     }
 
     private void initUI() {
-        
+        continueButton = new JButton("CONTINUE");
+        continueButton.setBounds(1050, 730, 400, 150);
+        continueButton.setFont(new Font("Arial", Font.BOLD, 50));
+        continueButton.setBackground(new Color(125, 203, 178));
+        continueButton.setForeground(Color.white);
+        continueButton.setOpaque(true);
+        continueButton.setBorderPainted(false);
+        continueButton.addActionListener(e -> {
+            endOrderPhase();
+        });
+        add(continueButton);
     }
 
     public void paintComponent(Graphics g) {
@@ -39,34 +50,15 @@ public class ResultsPanel extends JPanel implements MouseListener {
         g.setColor(Color.WHITE);
 
         g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
-        g.drawString("RESULTS", 1150, 49);
+        g.drawString("STEP 1, PHASE 1: PLAYER ORDER", 915, 49);
+    }
 
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setStroke(new BasicStroke(5));
-        g2.setColor(new Color(79, 53, 16));
-        g2.drawLine(950, 120, 1510, 120);
-        g2.drawLine(950, 270, 1510, 270);
-        g2.drawLine(950, 420, 1510, 420);
-        g2.drawLine(950, 570, 1510, 570);
-        g2.drawLine(950, 720, 1510, 720);
-        g2.drawLine(950, 120, 950, 720);
-        g2.drawLine(1137, 120, 1137, 720);
-        g2.drawLine(1324, 120, 1324, 720);
-        g2.drawLine(1510, 120, 1510, 720);
-
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 30));
-        g.drawString("CITIES", 1185, 175);
-        g.drawString("POWERED", 1150, 230);
-        g.drawString("MONEY", 1362, 175);
-        g.drawString("EARNED", 1355, 230);
-
-        g.setFont(new Font("Arial", Font.BOLD, 60));
-        g.drawString("PLAYER 1 WINS!", 1000, 860);
+    private void endOrderPhase() {
+        frame.showScreen("BIDDING");
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) { 
+    public void mouseClicked(MouseEvent e) {
         System.out.println("(" + e.getX() + ", " + e.getY() + ")");
     }
 

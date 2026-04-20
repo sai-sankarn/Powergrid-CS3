@@ -37,6 +37,7 @@ public class PowergridFrame extends JFrame {
 
         mainContainer.add(new StartPanel(this), "START");
         mainContainer.add(new SetupPanel(this), "SETUP");
+        mainContainer.add(new PlayerOrderPanel(this), "ORDER");
         mainContainer.add(biddingPanel, "BIDDING");
         mainContainer.add(new ResourcePanel(this), "RESOURCE");
         mainContainer.add(new BuildingPanel(this), "BUILDING");
