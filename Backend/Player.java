@@ -209,4 +209,26 @@ public class Player {
     public String toString() {
         return name + " ($" + money + ", cities:" + ownedCities.size() + ")";
     }
+
+    public Map<ResourceType, Integer> getStoredResources(){
+        int oil = 0;
+        int coal = 0;
+        int trash = 0;
+        int uranium = 0;
+        Map<ResourceType,Integer> map = new HashMap<>();
+        for (int i=0;i<powerplants.size();i++){
+            if (powerplants.get(i)!=null){
+                oil+=powerplants.get(i).getStoredAmount(ResourceType.OIL);
+                coal+=powerplants.get(i).getStoredAmount(ResourceType.COAL);
+                trash+=powerplants.get(i).getStoredAmount(ResourceType.TRASH);
+                uranium+=powerplants.get(i).getStoredAmount(ResourceType.URANIUM);
+            }
+        }
+
+        map.put(ResourceType.OIL,oil);
+        map.put(ResourceType.COAL,coal);
+        map.put(ResourceType.TRASH,trash);
+        map.put(ResourceType.URANIUM,uranium);
+        return map;
+    }
 }

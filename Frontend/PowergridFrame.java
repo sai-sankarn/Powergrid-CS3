@@ -18,6 +18,7 @@ public class PowergridFrame extends JFrame {
     private RoundManager roundManager;
 
     private BiddingPanel biddingPanel;
+    private ResourcePanel resourcePanel;
 
     public PowergridFrame(String name) {
         super(name);
@@ -36,11 +37,12 @@ public class PowergridFrame extends JFrame {
         roundManager = new RoundManager(players, new Gameboard(), new ResourceMarket(), new PowerplantDeck());
 
         biddingPanel = new BiddingPanel(this);
+        resourcePanel = new ResourcePanel(this);
 
         mainContainer.add(new StartPanel(this), "START");
         mainContainer.add(new SetupPanel(this), "SETUP");
         mainContainer.add(biddingPanel, "BIDDING");
-        mainContainer.add(new ResourcePanel(this), "RESOURCE");
+        mainContainer.add(resourcePanel, "RESOURCE");
         mainContainer.add(new BuildingPanel(this), "BUILDING");
 
         add(mainContainer);
@@ -58,6 +60,10 @@ public class PowergridFrame extends JFrame {
 
         if (name.equals("BIDDING")){
             biddingPanel.startAuctionPhase();
+        }
+
+        if (name.equals("RESOURCE")){
+            resourcePanel.startBuyingPhase();
         }
     }
 
