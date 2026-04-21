@@ -60,8 +60,6 @@ public class ResourceMarket {
         trashSlots   = new int[8];
         uraniumSlots = new int[12];
         uraniumResupplyStopped = false;
-
-        initializeStartingResources();
     }
 
     // --- Getters ---
