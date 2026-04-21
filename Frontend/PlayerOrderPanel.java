@@ -32,7 +32,7 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
 
     private void initUI() {
         continueButton = new JButton("CONTINUE");
-        continueButton.setBounds(1050, 730, 400, 150);
+        continueButton.setBounds(1030, 790, 400, 150);
         continueButton.setFont(new Font("Arial", Font.BOLD, 50));
         continueButton.setBackground(new Color(125, 203, 178));
         continueButton.setForeground(Color.white);
@@ -50,7 +50,26 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         g.setColor(Color.WHITE);
 
         g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
-        g.drawString("STEP 1, PHASE 1: PLAYER ORDER", 915, 49);
+        g.drawString("STEP 1, PHASE 1: PLAYER ORDER", 900, 49);
+
+        g.setColor(new Color(67, 126, 161));
+        g.fillRect(980, 120, 500, 200);
+        g.setColor(new Color(237, 174, 174));
+        g.fillRect(980, 340, 500, 200);
+        g.setColor(new Color(250, 226, 120));
+        g.fillRect(980, 560, 500, 200);
+        g.setColor(Color.BLACK);
+        g.drawRect(980, 120, 500, 200);
+        g.drawRect(980, 340, 500, 200);
+        g.drawRect(980, 560, 500, 200);
+
+        g.setFont(new Font("Arial", Font.BOLD, 40));
+        g.drawString("Player 1: 1 cities", 1000, 190);
+        g.drawString("Biggest power plant: 1", 1000, 260);
+        g.drawString("Player 2: 2 cities", 1000, 410);
+        g.drawString("Biggest power plant: 2", 1000, 480);
+        g.drawString("Player 3: 3 cities", 1000, 630);
+        g.drawString("Biggest power plant: 3", 1000, 700);
     }
 
     private void endOrderPhase() {
