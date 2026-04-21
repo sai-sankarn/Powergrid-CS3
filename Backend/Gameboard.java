@@ -179,7 +179,9 @@ public class Gameboard {
         // --- Create all cities ---
         City flensburg    = new City("Flensburg");
         City kiel         = new City("Kiel");
+        City lubeck       = new City("Lubeck");
         City hamburg      = new City("Hamburg");
+        City cuxhaven     = new City("Cuxhaven");
         City schwerin     = new City("Schwerin");
         City wilhelmshaven= new City("Wilhelmshaven");
         City bremen       = new City("Bremen");
@@ -187,14 +189,12 @@ public class Gameboard {
         City berlin       = new City("Berlin");
         City rostock      = new City("Rostock");
         City torgelow     = new City("Torgelow");
-        City osnabrueck   = new City("Osnabrück");
+        City osnabruck    = new City("Osnabrück");
         City dortmund     = new City("Dortmund");
         City munster      = new City("Münster");
-        City bielefeld    = new City("Bielefeld");
         City magdeburg    = new City("Magdeburg");
         City halle        = new City("Halle");
         City leipzig      = new City("Leipzig");
-        City cottbus      = new City("Cottbus");
         City duisburg     = new City("Duisburg");
         City dusseldorf   = new City("Düsseldorf");
         City essen        = new City("Essen");
@@ -203,18 +203,18 @@ public class Gameboard {
         City kassel       = new City("Kassel");
         City erfurt       = new City("Erfurt");
         City dresden      = new City("Dresden");
-        City siegen       = new City("Siegen");
         City fulda        = new City("Fulda");
-        City frankfurt    = new City("Frankfurt");
+        City frankfurt_m  = new City("Frankfurt-M");
+        City frankfurt_o  = new City("Frankfurt-O");
         City wiesbaden    = new City("Wiesbaden");
         City trier        = new City("Trier");
         City mannheim     = new City("Mannheim");
         City saarbrucken  = new City("Saarbrücken");
-        City wuerzburg    = new City("Würzburg");
+        City wurzburg     = new City("Würzburg");
         City nurnberg     = new City("Nürnberg");
         City stuttgart    = new City("Stuttgart");
         City freiburg     = new City("Freiburg");
-        City ulm          = new City("Ulm");
+        City konstanz     = new City("Konstanz");
         City augsburg     = new City("Augsburg");
         City regensburg   = new City("Regensburg");
         City munchen      = new City("München");
@@ -222,97 +222,105 @@ public class Gameboard {
 
         // --- Register all cities ---
         City[] all = {
-            flensburg, kiel, hamburg, schwerin, wilhelmshaven, bremen, hannover,
-            berlin, rostock, torgelow, osnabrueck, dortmund, munster, bielefeld,
-            magdeburg, halle, leipzig, cottbus, duisburg, dusseldorf, essen,
-            koln, aachen, kassel, erfurt, dresden, siegen, fulda, frankfurt,
-            wiesbaden, trier, mannheim, saarbrucken, wuerzburg, nurnberg, stuttgart,
-            freiburg, ulm, augsburg, regensburg, munchen, passau
+            flensburg, kiel, lubeck, hamburg, cuxhaven, schwerin, wilhelmshaven, bremen, hannover,
+            berlin, rostock, torgelow, osnabruck, dortmund, munster, 
+            magdeburg, halle, leipzig, duisburg, dusseldorf, essen,
+            koln, aachen, kassel, erfurt, dresden, siegen, fulda, frankfurt_m, frankfurt_o,
+            wiesbaden, trier, mannheim, saarbrucken, wurzburg, nurnberg, stuttgart,
+            freiburg, konstanz, ulm, augsburg, regensburg, munchen, passau
         };
         for (City c : all) addCity(c);
 
         // --- Connections (bidirectional, cost per edge) ---
         addConnection(flensburg, kiel, 4);
-        addConnection(flensburg, hamburg, 8);
         addConnection(kiel, hamburg, 8);
-        addConnection(kiel, schwerin, 16);
+        addConnection(kiel, lubeck, 4);
+        addConnection(lubeck, hamburg, 6);
+        addConnection(lubeck, schwerin, 6);
         addConnection(hamburg, schwerin, 8);
-        addConnection(hamburg, wilhelmshaven, 11);
         addConnection(hamburg, hannover, 17);
-        addConnection(hamburg, bremen, 13);
-        addConnection(schwerin, rostock, 10);
+        addConnection(hamburg, bremen, 11);
+        addConnection(cuxhaven, hamburg, 11);
+        addConnection(cuxhaven, bremen, 8);
+        addConnection(schwerin, rostock, 6);
         addConnection(schwerin, torgelow, 19);
-        addConnection(schwerin, berlin, 19);
-        addConnection(schwerin, hannover, 20);
-        addConnection(wilhelmshaven, bremen, 12);
-        addConnection(rostock, torgelow, 17);
-        addConnection(torgelow, berlin, 16);
+        addConnection(schwerin, berlin, 18);
+        addConnection(schwerin, hannover, 19);
+        addConnection(schwerin, magdeburg, 16);
+        addConnection(wilhelmshaven, bremen, 11);
+        addConnection(wilhelmshaven, osnabruck, 14);
+        addConnection(rostock, torgelow, 19);
+        addConnection(torgelow, berlin, 15);
         addConnection(berlin, magdeburg, 10);
-        addConnection(berlin, cottbus, 16);
-        addConnection(berlin, halle, 20);
+        addConnection(berlin, halle, 17);
         addConnection(bremen, hannover, 10);
-        addConnection(bremen, osnabrueck, 11);
+        addConnection(bremen, osnabruck, 11);
         addConnection(hannover, magdeburg, 15);
-        addConnection(hannover, bielefeld, 17);
-        addConnection(hannover, kassel, 18);
+        addConnection(hannover, kassel, 15);
         addConnection(magdeburg, halle, 11);
-        addConnection(halle, leipzig, 6);
-        addConnection(halle, erfurt, 12);
-        addConnection(halle, kassel, 20);
-        addConnection(leipzig, erfurt, 12);
-        addConnection(leipzig, dresden, 14);
-        addConnection(leipzig, cottbus, 19);
-        addConnection(cottbus, dresden, 16);
-        addConnection(dresden, erfurt, 20);
-        addConnection(osnabrueck, munster, 7);
-        addConnection(osnabrueck, bielefeld, 12);
-        addConnection(osnabrueck, dortmund, 15);
-        addConnection(munster, dortmund, 8);
-        addConnection(munster, duisburg, 12);
-        addConnection(bielefeld, dortmund, 11);
-        addConnection(bielefeld, kassel, 18);
-        addConnection(dortmund, essen, 6);
-        addConnection(dortmund, duisburg, 6);
-        addConnection(dortmund, siegen, 15);
-        addConnection(essen, duisburg, 4);
-        addConnection(duisburg, dusseldorf, 4);
-        addConnection(dusseldorf, koln, 9);
-        addConnection(dusseldorf, aachen, 18);
-        addConnection(koln, aachen, 14);
-        addConnection(koln, siegen, 14);
+        addConnection(halle, leipzig, 0); // metropolis
+        addConnection(halle, erfurt, 6);
+        addConnection(leipzig, dresden, 13);
+        addConnection(dresden, erfurt, 19);
+        addConnection(osnabruck, munster, 7); 
+        addConnection(munster, dortmund, 2);
+        addConnection(dortmund, essen, 4);
+        addConnection(essen, duisburg, 0);
+        addConnection(dusseldorf, koln, 4);
+        addConnection(dusseldorf, aachen, 9);
+        addConnection(koln, aachen, 7);
         addConnection(koln, trier, 20);
         addConnection(koln, wiesbaden, 21);
         addConnection(aachen, trier, 19);
-        addConnection(siegen, fulda, 16);
-        addConnection(siegen, frankfurt, 19);
-        addConnection(kassel, erfurt, 13);
+        addConnection(kassel, erfurt, 15);
         addConnection(kassel, fulda, 11);
-        addConnection(erfurt, fulda, 16);
-        addConnection(erfurt, wuerzburg, 20);
-        addConnection(fulda, wuerzburg, 12);
-        addConnection(fulda, frankfurt, 11);
-        addConnection(frankfurt, wiesbaden, 7);
-        addConnection(frankfurt, wuerzburg, 14);
-        addConnection(wiesbaden, mannheim, 14);
-        addConnection(wiesbaden, saarbrucken, 17);
+        addConnection(erfurt, fulda, 13);
+        addConnection(fulda, wurzburg, 11);
+        addConnection(fulda, frankfurt_m, 8);
+        addConnection(frankfurt_m, wiesbaden, 0);
+        addConnection(frankfurt_m, wurzburg, 13);
+        addConnection(wiesbaden, mannheim, 11);
+        addConnection(wiesbaden, saarbrucken, 10);
         addConnection(trier, saarbrucken, 11);
         addConnection(saarbrucken, mannheim, 11);
-        addConnection(saarbrucken, stuttgart, 16);
-        addConnection(mannheim, wuerzburg, 10);
-        addConnection(mannheim, stuttgart, 10);
-        addConnection(wuerzburg, nurnberg, 11);
+        addConnection(saarbrucken, stuttgart, 17);
+        addConnection(mannheim, wurzburg, 10);
+        addConnection(mannheim, stuttgart, 6);
+        addConnection(wurzburg, nurnberg, 8);
         addConnection(nurnberg, regensburg, 12);
         addConnection(nurnberg, augsburg, 18);
-        addConnection(nurnberg, stuttgart, 20);
-        addConnection(stuttgart, ulm, 10);
+        addConnection(stuttgart, konstanz, 16);
         addConnection(stuttgart, freiburg, 16);
-        addConnection(freiburg, ulm, 19);
-        addConnection(ulm, augsburg, 9);
-        addConnection(ulm, munchen, 19);
-        addConnection(augsburg, munchen, 8);
-        addConnection(munchen, regensburg, 16);
+        addConnection(freiburg, konstanz, 14);
+        addConnection(konstanz, augsburg, 17);
+        addConnection(augsburg, munchen, 6);
+        addConnection(munchen, regensburg, 10);
         addConnection(munchen, passau, 14);
         addConnection(regensburg, passau, 12);
+        
+        //newly added
+        addConnection(osnabruck, kassel, 20);
+        addConnection(osnabruck, hannover, 16);
+        addConnection(hannover, erfurt, 19);
+        addConnection(halle, erfurt, 6);
+        addConnection(berlin, frankfurt_o, 6);
+        addConnection(frankfurt_o, leipzig, 21);
+        addConnection(frankfurt_o, dresden, 16);
+        addConnection(munster, essen, 6);
+        addConnection(essen, dusseldorf, 2);
+        addConnection(dortmund, koln, 10);
+        addConnection(dortmund, kassel, 18);
+        addConnection(dortmund, frankfurt_m, 20);
+        addConnection(kassel, frankfurt_m, 13);
+        addConnection(kassel, fulda, 8);
+        addConnection(wiesbaden, trier, 18);
+        addConnection(fulda, wurzburg, 11);
+        addConnection(erfurt, nurnberg, 21);
+        addConnection(wurzburg, stuttgart, 12);
+        addConnection(wurzburg, augsburg, 19);
+        addConnection(stuttgart, augsburg, 15);
+        addConnection(regensburg, augsburg, 13);
+
     }
 
     // --- Inner helper class for Dijkstra ---
