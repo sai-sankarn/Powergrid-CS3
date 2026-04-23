@@ -1,7 +1,6 @@
 package Frontend;
 
 import Backend.*;
-
 import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -47,11 +46,14 @@ public class PowergridFrame extends JFrame {
         resourcePanel = new ResourcePanel(this);
         buildingPanel = new BuildingPanel(this);
 
-        mainContainer.add(new StartPanel(this),  "START");
-        mainContainer.add(new SetupPanel(this),  "SETUP");
-        mainContainer.add(biddingPanel,          "BIDDING");
-        mainContainer.add(resourcePanel,         "RESOURCE");
-        mainContainer.add(buildingPanel,         "BUILDING");
+        mainContainer.add(new StartPanel(this), "START");
+        mainContainer.add(new SetupPanel(this), "SETUP");
+        mainContainer.add(new PlayerOrderPanel(this), "ORDER");
+        mainContainer.add(biddingPanel, "BIDDING");
+        mainContainer.add(new ResourcePanel(this), "RESOURCE");
+        mainContainer.add(new BuildingPanel(this), "BUILDING");
+        mainContainer.add(new BureaucracyPanel(this), "BUREAUCRACY");
+        mainContainer.add(new ResultsPanel(this), "RESULTS");
 
         add(mainContainer);
         setVisible(true);
