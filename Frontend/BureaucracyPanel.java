@@ -66,6 +66,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         done.setOpaque(true);
         done.setBorderPainted(false);
         done.setBounds(1140, 540, 200, 80);
+        done.setToolTipText("DONE");
         done.setVisible(true);
         done.addActionListener(e -> handleDone());
         add(done);
@@ -87,6 +88,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             b.setBorderPainted(false);
             b.setBackground(new Color(165, 175, 207));
             b.setForeground(Color.WHITE);
+            b.setToolTipText("POWER");
             b.setVisible(true);
             b.addActionListener(e -> handlePower(b));
             add(b);

@@ -60,6 +60,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         coal.setBounds(1292, 217, 150, 50);        
         coal.setOpaque(true);
         coal.setBorderPainted(false);
+        coal.setToolTipText("Buy coal");
         coal.setVisible(true);
         coal.addActionListener(e -> handleBuy("COAL"));
         add(coal);
@@ -71,6 +72,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         oil.setBounds(1292, 280, 150, 50);
         oil.setOpaque(true);
         oil.setBorderPainted(false);
+        oil.setToolTipText("Buy oil");
         oil.setVisible(true);
         oil.addActionListener(e -> handleBuy("OIL"));
         add(oil);
@@ -82,6 +84,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         garbage.setBounds(1292, 340, 150, 50);
         garbage.setOpaque(true);
         garbage.setBorderPainted(false);
+        garbage.setToolTipText("Buy trash");
         garbage.addActionListener(e -> handleBuy("TRASH"));
         garbage.setVisible(true);
 
@@ -94,6 +97,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         uranium.setBounds(1292, 400, 150, 50);
         uranium.setOpaque(true);
         uranium.setBorderPainted(false);
+        uranium.setToolTipText("Buy uranium");
         uranium.setVisible(true);
         uranium.addActionListener(e -> handleBuy("URANIUM"));
         add(uranium);
@@ -105,6 +109,7 @@ public class ResourcePanel extends JPanel implements MouseListener{
         done.setBounds(1148, 503, 200, 75);
         done.setOpaque(true);
         done.setBorderPainted(false);
+        done.setToolTipText("DONE");
         done.setVisible(true);
         done.addActionListener(e -> frame.showScreen("BUILDING"));
         add(done);

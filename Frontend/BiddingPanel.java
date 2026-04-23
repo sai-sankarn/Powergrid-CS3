@@ -3,7 +3,6 @@ package Frontend;
 import Backend.Player;
 import Backend.Powerplant;
 import Backend.RoundManager;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -66,6 +65,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bidButton.setForeground(Color.white);
         bidButton.setOpaque(true);
         bidButton.setBorderPainted(false);
+        bidButton.setToolTipText("BID");
         bidButton.addActionListener(e -> {
             try {
                 int amount = Integer.parseInt(bidInput.getText());
@@ -83,6 +83,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setForeground(Color.white);
         passButton.setOpaque(true);
         passButton.setBorderPainted(false);
+        passButton.setToolTipText("PASS");
         passButton.addActionListener(e -> handlePass());
         add(passButton);
     }

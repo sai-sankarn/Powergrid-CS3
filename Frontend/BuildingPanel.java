@@ -80,6 +80,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         cityDropdown.setFont(new Font("Arial", Font.PLAIN, 20));
         cityDropdown.setSelectedIndex(0);
         cityDropdown.setBounds(900, 200, 400, 30);
+        cityDropdown.setToolTipText("Select a city");
         cityDropdown.setVisible(true);
         add(cityDropdown);
 
@@ -90,6 +91,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         build.setOpaque(true);
         build.setBorderPainted(false);
         build.setBounds(1330, 300, 200, 150);
+        build.setToolTipText("BUILD CITY");
         build.setVisible(true);
         build.addActionListener(e -> handleBuild(cityDropdown.getSelectedItem()));
         add(build);
@@ -101,6 +103,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         done.setOpaque(true);
         done.setBorderPainted(false);
         done.setBounds(1330, 500, 200, 100);
+        done.setToolTipText("DONE");
         done.setVisible(true);
         done.addActionListener(e -> handleDone());
         add(done);
