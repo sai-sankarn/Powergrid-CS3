@@ -7,33 +7,44 @@ import javax.swing.*;
 
 public class PowergridFrame extends JFrame {
 
-    private static final int WIDTH = 1600;
+    private static final int WIDTH  = 1600;
     private static final int HEIGHT = 1000;
-    
+
     private CardLayout cardLayout;
     private JPanel mainContainer;
 
     private RoundManager roundManager;
 
-    private BiddingPanel biddingPanel;
+    private BiddingPanel  biddingPanel;
+    private ResourcePanel resourcePanel;
+    private BuildingPanel buildingPanel;
 
     public PowergridFrame(String name) {
         super(name);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(WIDTH,HEIGHT);
+        setSize(WIDTH, HEIGHT);
         setResizable(false);
 
-        cardLayout = new CardLayout();
+        cardLayout    = new CardLayout();
         mainContainer = new JPanel(cardLayout);
 
         ArrayList<Player> players = new ArrayList<>();
-        players.add(new Player("Sai",50,"Yellow"));
-        players.add(new Player("ChenXi",50,"Blue"));
-        players.add(new Player("Catherine",50,"Green"));
+        players.add(new Player("Sai",       50, "Yellow"));
+        players.add(new Player("ChenXi",    50, "Blue"));
+        players.add(new Player("Catherine", 50, "Green"));
 
-        roundManager = new RoundManager(players, new Gameboard(), new ResourceMarket(), new PowerplantDeck());
+        // Build and initialise the board before handing it to RoundManager.
+        Gameboard board = new Gameboard();
+        board.initializeGermanMap(); // required — without this, getCityByName() always returns null
 
-        biddingPanel = new BiddingPanel(this);
+        ResourceMarket market = new ResourceMarket();
+        market.initializeStartingResources(); // populate starting tokens
+
+        roundManager = new RoundManager(players, board, market, new PowerplantDeck());
+
+        biddingPanel  = new BiddingPanel(this);
+        resourcePanel = new ResourcePanel(this);
+        buildingPanel = new BuildingPanel(this);
 
         mainContainer.add(new StartPanel(this), "START");
         mainContainer.add(new SetupPanel(this), "SETUP");
@@ -50,19 +61,23 @@ public class PowergridFrame extends JFrame {
 
     public void showScreen(String name) {
         cardLayout.show(mainContainer, name);
-    
-		for (Component comp : mainContainer.getComponents()) {
-			if (comp.isVisible()) {
-				comp.requestFocusInWindow();
-			}
-		}
 
-        if (name.equals("BIDDING")){
-            biddingPanel.startAuctionPhase();
+        // Give keyboard focus to whichever panel just became visible.
+        for (Component comp : mainContainer.getComponents()) {
+            if (comp.isVisible()) {
+                comp.requestFocusInWindow();
+            }
+        }
+
+        // Phase-specific initialisation hooks.
+        switch (name) {
+            case "BIDDING"   -> biddingPanel.startAuctionPhase();
+            case "RESOURCE"  -> resourcePanel.startBuyingPhase();
+            case "BUILDING"  -> buildingPanel.startBuildingPhase();
         }
     }
 
-    public RoundManager getRoundManager(){
+    public RoundManager getRoundManager() {
         return roundManager;
     }
 }
