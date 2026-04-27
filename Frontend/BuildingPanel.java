@@ -130,17 +130,25 @@ public class BuildingPanel extends JPanel implements MouseListener {
             Gameboard board  = rm.getBoard();
             int step         = rm.getCurrentStep();
 
-            // Iterate the canonical set of named coordinates so order is consistent.
+            // after — sorted cheapest first
+            List<String> affordable = new ArrayList<>();
             for (String cityName : Constants.CityCoordinates.coordinates.keySet()) {
                 City city = board.getCityByName(cityName);
-                if (city == null) continue;                     // not on active map
-                if (!city.hasOpenSlot(step)) continue;          // no room at this step
-                if (city.isOccupiedBy(player)) continue;        // player already there
-
-                // Only show cities the player can actually afford.
+                if (city == null) continue;
+                if (!city.hasOpenSlot(step)) continue;
+                if (city.isOccupiedBy(player)) continue;
                 if (calculateCostFor(player, city) >= 0) {
-                    cityDropdown.addItem(cityName);
+                    affordable.add(cityName);
                 }
+            }
+            affordable.sort((a, b) -> {
+                City cityA = board.getCityByName(a);
+                City cityB = board.getCityByName(b);
+                return Integer.compare(calculateCostFor(player, cityA),
+                        calculateCostFor(player, cityB));
+            });
+            for (String cityName : affordable) {
+                cityDropdown.addItem(cityName);
             }
         }
 
@@ -234,9 +242,8 @@ public class BuildingPanel extends JPanel implements MouseListener {
         if (buildingPlayerIndex < 0) {
             // All players have built — run the full bureaucracy phase and start next round.
             RoundManager rm = frame.getRoundManager();
-            rm.nextPhase();          // BUILDING → BUREAUCRACY
-            rm.handleBureaucracy(); // pay, restock, card update → DETERMINE_ORDER internally
-            frame.showScreen("BIDDING");
+            rm.nextPhase();
+            frame.showScreen("BUREAUCRACY");
         } else {
             refreshDropdown();
             repaint();

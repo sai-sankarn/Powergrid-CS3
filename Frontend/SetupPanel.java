@@ -1,5 +1,7 @@
 package Frontend;
 
+import Backend.RoundManager;
+
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -112,12 +114,12 @@ public class SetupPanel extends JPanel implements MouseListener{
         g.drawString("Player 1: Select A Color That Corresponds", 969,174);
         g.drawString("To The Area You Want",1093,201);
 
-        for (Map.Entry<String, Point> entry : Constants.CityCoordinates.coordinates.entrySet()){
-            double topLeftX = entry.getValue().getX()-(53/2);
-            double topLeftY = entry.getValue().getY()-(53/2);
+        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintTurnOrderIndicators(g, frame.getRoundManager());
 
-            g.fillOval((int) topLeftX, (int) topLeftY,53,53);
-        }
+
+
+
     }
 
     public void handleClick(JButton button) {

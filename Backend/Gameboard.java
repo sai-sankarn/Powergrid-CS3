@@ -225,9 +225,9 @@ public class Gameboard {
             flensburg, kiel, lubeck, hamburg, cuxhaven, schwerin, wilhelmshaven, bremen, hannover,
             berlin, rostock, torgelow, osnabruck, dortmund, munster, 
             magdeburg, halle, leipzig, duisburg, dusseldorf, essen,
-            koln, aachen, kassel, erfurt, dresden, siegen, fulda, frankfurt_m, frankfurt_o,
+            koln, aachen, kassel, erfurt, dresden, fulda, frankfurt_m, frankfurt_o,
             wiesbaden, trier, mannheim, saarbrucken, wurzburg, nurnberg, stuttgart,
-            freiburg, konstanz, ulm, augsburg, regensburg, munchen, passau
+            freiburg, konstanz, augsburg, regensburg, munchen, passau
         };
         for (City c : all) addCity(c);
 
