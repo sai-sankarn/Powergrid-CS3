@@ -10,22 +10,23 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class BureaucracyPanel extends JPanel implements MouseListener {
 
-    BufferedImage background;
-    PowergridFrame frame;
+    private BufferedImage background;
+    private PowergridFrame frame;
 
     //hand
-    Player player;
-    List<BufferedImage> powerplants;
-    int elektro;
-    List<Integer> inventory;
-    JButton powerButton1;
-    JButton powerButton2;
-    JButton powerButton3;
-    List<JButton> powerButtons;
-    JButton done;
+    private Player player;
+    private List<BufferedImage> powerplants;
+    private int elektro;
+    private List<Integer> inventory;
+    private JButton powerButton1;
+    private JButton powerButton2;
+    private JButton powerButton3;
+    private List<JButton> powerButtons;
+    private JButton done;
 
     public BureaucracyPanel(PowergridFrame frame) {
         this.frame = frame;
@@ -64,7 +65,8 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         done.setBackground(new Color(237, 174, 174));
         done.setForeground(Color.WHITE);
         done.setOpaque(true);
-        done.setBorderPainted(false);
+        done.setBorderPainted(true);
+        done.setBorder(new LineBorder(Color.GRAY));
         done.setBounds(1140, 540, 200, 80);
         done.setToolTipText("DONE");
         done.setVisible(true);
@@ -85,7 +87,8 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             b.setBounds(900 + (i * 187), 715, 175, 45);
             b.setFont(new Font("Arial", Font.BOLD, 20));
             b.setOpaque(true);
-            b.setBorderPainted(false);
+            b.setBorderPainted(true);
+            b.setBorder(new LineBorder(Color.GRAY));
             b.setBackground(new Color(165, 175, 207));
             b.setForeground(Color.WHITE);
             b.setToolTipText("POWER");

@@ -10,8 +10,10 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class BiddingPanel extends JPanel implements MouseListener {
+
     private BufferedImage background;
     private PowergridFrame frame;
 
@@ -20,6 +22,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
     private JTextField bidInput;
     private JButton bidButton;
     private JButton passButton;
+    private JButton replaceButton1;
+    private JButton replaceButton2;
+    private JButton replaceButton3;
+    private List<JButton> replaceButtons;
 
     // Image Cache to load powerplant images dynamically
     private Map<Integer, BufferedImage> plantImages = new HashMap<>();
@@ -59,7 +65,8 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bidButton.setBackground(new Color(125, 203, 178));
         bidButton.setForeground(Color.white);
         bidButton.setOpaque(true);
-        bidButton.setBorderPainted(false);
+        bidButton.setBorderPainted(true);
+        bidButton.setBorder(new LineBorder(Color.GRAY));
         bidButton.setToolTipText("BID");
         bidButton.addActionListener(e -> {
             try {
@@ -77,10 +84,33 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setBackground(new Color(237, 174, 174));
         passButton.setForeground(Color.white);
         passButton.setOpaque(true);
-        passButton.setBorderPainted(false);
+        passButton.setBorderPainted(true);
+        passButton.setBorder(new LineBorder(Color.GRAY));
         passButton.setToolTipText("PASS");
         passButton.addActionListener(e -> handlePass());
         add(passButton);
+
+        replaceButton1 = new JButton("POWER");
+        replaceButton2 = new JButton("POWER");
+        replaceButton3 = new JButton("POWER");
+        replaceButtons = new ArrayList<>();
+        replaceButtons.add(replaceButton1);
+        replaceButtons.add(replaceButton2);
+        replaceButtons.add(replaceButton3);
+        for (int i = 0; i < replaceButtons.size(); i++) {
+            JButton b = replaceButtons.get(i);
+            b.setBounds(900 + (i * 187), 715, 175, 45);
+            b.setFont(new Font("Arial", Font.BOLD, 20));
+            b.setOpaque(true);
+            b.setBorderPainted(true);
+            b.setBorder(new LineBorder(Color.GRAY));
+            b.setBackground(new Color(165, 175, 207));
+            b.setForeground(Color.WHITE);
+            b.setToolTipText("POWER");
+            b.setVisible(true);
+            b.addActionListener(e -> handleReplace(b));
+            add(b);
+        }
     }
 
     /**
@@ -93,8 +123,8 @@ public class BiddingPanel extends JPanel implements MouseListener {
     }
 
     /**
-     * Finds the next player in turn order who needs to initiate an auction.
-     * If all players are done, ends the phase.
+     * Finds the next player in turn order who needs to initiate an auction. If
+     * all players are done, ends the phase.
      */
     private void findNextInitiator() {
         RoundManager rm = frame.getRoundManager();
@@ -171,7 +201,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
             Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
             Powerplant selectedPlant = (Powerplant) powerplantDropdown.getSelectedItem();
 
-            if (selectedPlant == null) return;
+            if (selectedPlant == null) {
+                return;
+            }
 
             if (amount < selectedPlant.getNumber()) {
                 JOptionPane.showMessageDialog(this, "Starting bid must be at least the plant's face value.");
@@ -260,7 +292,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
         }
 
         RoundManager rm = frame.getRoundManager();
-        if (rm == null || rm.getTurnOrder().isEmpty()) return;
+        if (rm == null || rm.getTurnOrder().isEmpty()) {
+            return;
+        }
 
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
@@ -279,8 +313,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 BufferedImage img = getPlantImage(p.getNumber());
                 if (img != null) {
                     g.drawImage(img, x, 209, 122, 122, null);
-                }
-                else {
+                } else {
                     System.out.println("No image for " + p.getNumber());
                 }
                 x += 132;
@@ -314,7 +347,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
     private void refreshDropdown() {
         RoundManager rm = frame.getRoundManager();
-        if (rm == null) return;
+        if (rm == null) {
+            return;
+        }
 
         powerplantDropdown.removeAllItems();
         powerplantDropdown.setVisible(true);
@@ -330,22 +365,30 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
     private void paintHand(Graphics g) {
         RoundManager rm = frame.getRoundManager();
-        if (rm == null || rm.getTurnOrder().isEmpty()) return;
+        if (rm == null || rm.getTurnOrder().isEmpty()) {
+            return;
+        }
 
         Player player;
 
         // Determine who the current player is based on the auction state
         if (isAuctionActive) {
             // An auction is happening: get the person whose turn it is to bid
-            if (currentBidders.isEmpty() || activeBidderIndex >= currentBidders.size()) return;
+            if (currentBidders.isEmpty() || activeBidderIndex >= currentBidders.size()) {
+                return;
+            }
             player = currentBidders.get(activeBidderIndex);
         } else {
             // No auction is happening: get the person whose turn it is to pick a plant
-            if (auctionInitiatorIndex >= rm.getTurnOrder().size()) return;
+            if (auctionInitiatorIndex >= rm.getTurnOrder().size()) {
+                return;
+            }
             player = rm.getTurnOrder().get(auctionInitiatorIndex);
         }
 
-        if (player == null) return;
+        if (player == null) {
+            return;
+        }
 
         // Player colour oval
         Color playerColor = parseColor(player.getColor());
@@ -395,9 +438,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
             stored = Collections.emptyMap();
         }
 
-        int coal    = stored.getOrDefault(ResourceType.COAL,    0);
-        int oil     = stored.getOrDefault(ResourceType.OIL,     0);
-        int trash   = stored.getOrDefault(ResourceType.TRASH,   0);
+        int coal = stored.getOrDefault(ResourceType.COAL, 0);
+        int oil = stored.getOrDefault(ResourceType.OIL, 0);
+        int trash = stored.getOrDefault(ResourceType.TRASH, 0);
         int uranium = stored.getOrDefault(ResourceType.URANIUM, 0);
 
         // Colour swatches
@@ -413,18 +456,18 @@ public class BiddingPanel extends JPanel implements MouseListener {
         // Counts
         g.setFont(new Font("Arial", Font.PLAIN, 20));
         g.setColor(Color.WHITE);
-        g.drawString(String.valueOf(coal),    1510, 850);
-        g.drawString(String.valueOf(oil),     1510, 880);
-        g.drawString(String.valueOf(trash),   1510, 910);
+        g.drawString(String.valueOf(coal), 1510, 850);
+        g.drawString(String.valueOf(oil), 1510, 880);
+        g.drawString(String.valueOf(trash), 1510, 910);
         g.drawString(String.valueOf(uranium), 1510, 940);
     }
 
     private void paintResourceIcons(Graphics g) {
         ResourceMarket market = frame.getRoundManager().getResourceMarket();
 
-        int coalCount    = market.getAvailableAmount(ResourceType.COAL);
-        int oilCount     = market.getAvailableAmount(ResourceType.OIL);
-        int trashCount   = market.getAvailableAmount(ResourceType.TRASH);
+        int coalCount = market.getAvailableAmount(ResourceType.COAL);
+        int oilCount = market.getAvailableAmount(ResourceType.OIL);
+        int trashCount = market.getAvailableAmount(ResourceType.TRASH);
         int uraniumCount = market.getAvailableAmount(ResourceType.URANIUM);
 
         // --- COAL (brown rectangles, up to 24) ---
@@ -433,86 +476,159 @@ public class BiddingPanel extends JPanel implements MouseListener {
             g.setColor(new Color(99, 68, 38));
             g.fillRect(x, y, 18, 12);
             switch (i) {
-                case 2  -> x = 671;
-                case 5  -> x = 572;
-                case 8  -> x = 474;
-                case 11 -> x = 376;
-                case 14 -> { x = 276; y = 906; }
-                case 17 -> x = 180;
-                case 20 -> x = 81;
-                default -> x -= 28;
+                case 2 ->
+                    x = 671;
+                case 5 ->
+                    x = 572;
+                case 8 ->
+                    x = 474;
+                case 11 ->
+                    x = 376;
+                case 14 -> {
+                    x = 276;
+                    y = 906;
+                }
+                case 17 ->
+                    x = 180;
+                case 20 ->
+                    x = 81;
+                default ->
+                    x -= 28;
             }
         }
 
         // --- OIL (dark rectangles, up to 24) ---
-        x = 753; y = 922;
+        x = 753;
+        y = 922;
         for (int i = 0; i < oilCount; i++) {
             g.setColor(new Color(12, 37, 48));
             g.fillRect(x, y, 12, 11);
             switch (i) {
-                case 2  -> { x = 655; y = 924; }
-                case 5  -> x = 556;
-                case 8  -> x = 458;
-                case 11 -> x = 359;
-                case 14 -> x = 260;
-                case 17 -> x = 160;
-                case 20 -> x = 63;
-                default -> x -= 21;
+                case 2 -> {
+                    x = 655;
+                    y = 924;
+                }
+                case 5 ->
+                    x = 556;
+                case 8 ->
+                    x = 458;
+                case 11 ->
+                    x = 359;
+                case 14 ->
+                    x = 260;
+                case 17 ->
+                    x = 160;
+                case 20 ->
+                    x = 63;
+                default ->
+                    x -= 21;
             }
         }
 
         // --- TRASH (yellow rectangles, up to 24) ---
-        x = 769; y = 940;
+        x = 769;
+        y = 940;
         for (int i = 0; i < trashCount; i++) {
             g.setColor(new Color(245, 213, 84));
             g.fillRect(x, y, 18, 12);
             switch (i) {
-                case 2  -> x = 671;
-                case 5  -> x = 572;
-                case 8  -> x = 474;
-                case 11 -> x = 376;
-                case 14 -> { x = 276; y = 945; }
-                case 17 -> x = 180;
-                case 20 -> x = 81;
-                default -> x -= 28;
+                case 2 ->
+                    x = 671;
+                case 5 ->
+                    x = 572;
+                case 8 ->
+                    x = 474;
+                case 11 ->
+                    x = 376;
+                case 14 -> {
+                    x = 276;
+                    y = 945;
+                }
+                case 17 ->
+                    x = 180;
+                case 20 ->
+                    x = 81;
+                default ->
+                    x -= 28;
             }
         }
 
         // --- URANIUM (red rectangles, up to 12) ---
-        x = 848; y = 936;
+        x = 848;
+        y = 936;
         int w = 16, h = 14;
         for (int i = 0; i < uraniumCount; i++) {
             g.setColor(new Color(213, 82, 68));
             g.fillRect(x, y, w, h);
             switch (i) {
-                case 0 -> { x = 808; y = 937; }
-                case 1 -> { x = 848; y = 909; }
-                case 2 -> { x = 809; y = 902; }
-                case 3 -> { x = 774; y = 925; w = 13; h = 10; }
-                default -> x -= 98;
+                case 0 -> {
+                    x = 808;
+                    y = 937;
+                }
+                case 1 -> {
+                    x = 848;
+                    y = 909;
+                }
+                case 2 -> {
+                    x = 809;
+                    y = 902;
+                }
+                case 3 -> {
+                    x = 774;
+                    y = 925;
+                    w = 13;
+                    h = 10;
+                }
+                default ->
+                    x -= 98;
             }
         }
     }
 
     private Color parseColor(String colorName) {
-        if (colorName == null) return Color.LIGHT_GRAY;
+        if (colorName == null) {
+            return Color.LIGHT_GRAY;
+        }
         return switch (colorName.toLowerCase()) {
-            case "red"    -> new Color(220, 60,  60);
-            case "blue"   -> new Color(60,  100, 200);
-            case "green"  -> new Color(60,  160, 80);
-            case "yellow" -> new Color(220, 190, 50);
-            case "purple" -> new Color(130, 60,  180);
-            case "black"  -> Color.DARK_GRAY;
-            default       -> Color.LIGHT_GRAY;
+            case "red" ->
+                new Color(220, 60, 60);
+            case "blue" ->
+                new Color(60, 100, 200);
+            case "green" ->
+                new Color(60, 160, 80);
+            case "yellow" ->
+                new Color(220, 190, 50);
+            case "purple" ->
+                new Color(130, 60, 180);
+            case "black" ->
+                Color.DARK_GRAY;
+            default ->
+                Color.LIGHT_GRAY;
         };
     }
 
-
-
     // Unused MouseListener methods
-    @Override public void mouseClicked(MouseEvent e) {}
-    @Override public void mousePressed(MouseEvent e) {}
-    @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
+    @Override
+    public void mouseClicked(MouseEvent e) {
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+    }
+
+    private void handleReplace(JButton b) {
+        // replace powerplant in hand
+    }
 }
