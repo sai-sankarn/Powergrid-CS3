@@ -17,20 +17,13 @@ public final class PanelUtils {
     private PanelUtils() {}   // utility class, no instances
 
     // ── Turn-order indicators ─────────────────────────────────────────────────
-    // Three small translucent rectangles over the scoring track in the top-left
-    // of the board image.  Each is coloured with the matching player's colour.
-    // Coordinates taken directly from the game board pixel positions supplied.
 
     private static final int[] IND_X = { 59,  93, 128 };
     private static final int[] IND_Y = { 22,  22,  22 };
     private static final int[] IND_W = { 19,  20,  18 };
     private static final int   IND_H = 12;
-    private static final float IND_ALPHA = 0.55f;   // transparent enough to see numbers
+    private static final float IND_ALPHA = 0.55f;
 
-    /**
-     * Paints one small translucent coloured rectangle for each player,
-     * positioned in turn order (index 0 = first player).
-     */
     public static void paintTurnOrderIndicators(Graphics g, RoundManager rm) {
         if (rm == null) return;
         List<Player> order = rm.getTurnOrder();
@@ -46,14 +39,47 @@ public final class PanelUtils {
         g2.setComposite(original);
     }
 
-    // ── Hand area ─────────────────────────────────────────────────────────────
+    // ── Cities and Board Tracker ──────────────────────────────────────────────
 
     /**
-     * Draws the full player hand: colour oval, name, money, powerplant cards,
-     * and the resource inventory squares.
-     * Panels that need a custom plant overlay (e.g. BureaucracyPanel) should call
-     * {@link #paintPlayerInfo} + {@link #paintInventory} separately.
+     * Paints all owned cities on the map and the active player's city-count tracker.
+     * The tracker is only drawn for the player currently in the building phase.
      */
+    /**
+     * Paints all owned cities on the map and the city-count tracker for EVERY player.
+     * Markers on the tracker will overlap if players have the same number of cities.
+     */
+    public static void paintCities(Graphics g, RoundManager rm) {
+        if (rm == null) return;
+
+        for (Player p : rm.getPlayers()) {
+            Color c = parseColor(p.getColor());
+
+            // 1. Paint cities on the map for this player
+            for (City city : p.getOwnedCities()) {
+                Point pt = Constants.CityCoordinates.coordinates.get(city.getName());
+                if (pt == null) continue;
+
+                g.setColor(c);
+                g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
+            }
+
+            // 2. Paint this player's marker on the city-count tracker
+            int count = p.getCityCount();
+            g.setColor(c);
+
+            if (count > 0 && count <= 7) {
+                // First row of the tracker
+                g.fillRect(410 + count * 65, 16, 20, 20);
+            } else if (count > 7) {
+                // Second row of the tracker
+                g.fillRect(410 + (count - 7) * 32, 47, 20, 20);
+            }
+        }
+    }
+
+    // ── Hand area ─────────────────────────────────────────────────────────────
+
     public static void paintHand(Graphics g, Player player,
                                  Map<Integer, BufferedImage> plantImageCache) {
         if (player == null) return;
@@ -62,31 +88,21 @@ public final class PanelUtils {
         paintInventory(g, player);
     }
 
-    /**
-     * Colour oval, player name, and money — no plants or inventory.
-     */
     public static void paintPlayerInfo(Graphics g, Player player) {
         if (player == null) return;
 
-        // Colour oval (bottom-right corner)
         g.setColor(parseColor(player.getColor()));
         g.fillOval(1460, 695, 120, 120);
 
-        // Name
         g.setFont(new Font("Arial", Font.BOLD, 22));
         g.setColor(Color.WHITE);
         g.drawString(player.getName(), 1180, 700);
 
-        // Money
         g.setFont(new Font("Arial", Font.PLAIN, 50));
         g.setColor(Color.WHITE);
         g.drawString("$" + player.getMoney(), 1480, 770);
     }
 
-    /**
-     * Draws up to 3 powerplant cards for the player, using cached images.
-     * Falls back to a labelled rectangle if the image is missing.
-     */
     public static void paintPlants(Graphics g, Player player,
                                    Map<Integer, BufferedImage> plantImageCache) {
         if (player == null) return;
@@ -108,10 +124,6 @@ public final class PanelUtils {
         }
     }
 
-    /**
-     * Draws the four resource-type colour squares and their counts,
-     * pulled from the player's stored resources across all plants.
-     */
     public static void paintInventory(Graphics g, Player player) {
         if (player == null) return;
         Map<ResourceType, Integer> stored;
@@ -121,11 +133,10 @@ public final class PanelUtils {
             stored = Collections.emptyMap();
         }
 
-        // Colour swatches
-        g.setColor(new Color(92, 50, 5));  g.fillRect(1475, 832, 25, 25); // coal
-        g.setColor(Color.BLACK);           g.fillRect(1475, 862, 25, 25); // oil
-        g.setColor(Color.YELLOW);          g.fillRect(1475, 892, 25, 25); // trash
-        g.setColor(Color.RED);             g.fillRect(1475, 922, 25, 25); // uranium
+        g.setColor(new Color(92, 50, 5));  g.fillRect(1475, 832, 25, 25);
+        g.setColor(Color.BLACK);           g.fillRect(1475, 862, 25, 25);
+        g.setColor(Color.YELLOW);          g.fillRect(1475, 892, 25, 25);
+        g.setColor(Color.RED);             g.fillRect(1475, 922, 25, 25);
 
         g.setFont(new Font("Arial", Font.PLAIN, 20));
         g.setColor(Color.WHITE);
@@ -137,10 +148,6 @@ public final class PanelUtils {
 
     // ── Resource market icons ─────────────────────────────────────────────────
 
-    /**
-     * Draws the resource tokens on the board image.
-     * Pixel positions match the game board exactly.
-     */
     public static void paintResourceIcons(Graphics g, ResourceMarket market) {
         if (market == null) return;
 
@@ -149,7 +156,6 @@ public final class PanelUtils {
         int trashCount   = market.getAvailableAmount(ResourceType.TRASH);
         int uraniumCount = market.getAvailableAmount(ResourceType.URANIUM);
 
-        // --- COAL ---
         int x = 769, y = 902;
         for (int i = 0; i < coalCount; i++) {
             g.setColor(new Color(99, 68, 38));
@@ -166,7 +172,6 @@ public final class PanelUtils {
             }
         }
 
-        // --- OIL ---
         x = 753; y = 922;
         for (int i = 0; i < oilCount; i++) {
             g.setColor(new Color(12, 37, 48));
@@ -183,7 +188,6 @@ public final class PanelUtils {
             }
         }
 
-        // --- TRASH ---
         x = 769; y = 940;
         for (int i = 0; i < trashCount; i++) {
             g.setColor(new Color(245, 213, 84));
@@ -200,7 +204,6 @@ public final class PanelUtils {
             }
         }
 
-        // --- URANIUM ---
         x = 848; y = 936;
         int w = 16, h = 14;
         for (int i = 0; i < uraniumCount; i++) {
@@ -218,10 +221,6 @@ public final class PanelUtils {
 
     // ── Image loading ─────────────────────────────────────────────────────────
 
-    /**
-     * Loads and caches a powerplant image by card number.
-     * Stores null on failure so the panel can fall back without retrying.
-     */
     public static BufferedImage getPlantImage(int number, Map<Integer, BufferedImage> cache) {
         if (cache.containsKey(number)) return cache.get(number);
         BufferedImage img = null;
