@@ -236,8 +236,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
             // All players have built — run the full bureaucracy phase and start next round.
             RoundManager rm = frame.getRoundManager();
             rm.nextPhase();          // BUILDING → BUREAUCRACY
-            rm.handleBureaucracy(); // pay, restock, card update → DETERMINE_ORDER internally
-            frame.showScreen("BIDDING");
+            frame.showScreen("BUREAUCRACY");
         } else {
             refreshDropdown();
             repaint();

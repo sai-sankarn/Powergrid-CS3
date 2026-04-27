@@ -1,6 +1,7 @@
 package Frontend;
 
 import Backend.*;
+
 import java.awt.*;
 import java.util.ArrayList;
 import javax.swing.*;
@@ -15,9 +16,11 @@ public class PowergridFrame extends JFrame {
 
     private RoundManager roundManager;
 
-    private BiddingPanel  biddingPanel;
-    private ResourcePanel resourcePanel;
-    private BuildingPanel buildingPanel;
+    private BiddingPanel      biddingPanel;
+    private ResourcePanel     resourcePanel;
+    private BuildingPanel     buildingPanel;
+    private BureaucracyPanel  bureaucracyPanel;
+    private PlayerOrderPanel  playerOrderPanel;
 
     public PowergridFrame(String name) {
         super(name);
@@ -33,27 +36,27 @@ public class PowergridFrame extends JFrame {
         players.add(new Player("ChenXi",    50, "Blue"));
         players.add(new Player("Catherine", 50, "Green"));
 
-        // Build and initialise the board before handing it to RoundManager.
         Gameboard board = new Gameboard();
-        board.initializeGermanMap(); // required — without this, getCityByName() always returns null
+        board.initializeGermanMap();
 
         ResourceMarket market = new ResourceMarket();
-        market.initializeStartingResources(); // populate starting tokens
+        market.initializeStartingResources();
 
         roundManager = new RoundManager(players, board, market, new PowerplantDeck());
 
-        biddingPanel  = new BiddingPanel(this);
-        resourcePanel = new ResourcePanel(this);
-        buildingPanel = new BuildingPanel(this);
+        biddingPanel     = new BiddingPanel(this);
+        resourcePanel    = new ResourcePanel(this);
+        buildingPanel    = new BuildingPanel(this);
+        bureaucracyPanel = new BureaucracyPanel(this);
+        playerOrderPanel = new PlayerOrderPanel(this);
 
-        mainContainer.add(new StartPanel(this), "START");
-        mainContainer.add(new SetupPanel(this), "SETUP");
-        mainContainer.add(new PlayerOrderPanel(this), "ORDER");
-        mainContainer.add(biddingPanel, "BIDDING");
-        mainContainer.add(new ResourcePanel(this), "RESOURCE");
-        mainContainer.add(new BuildingPanel(this), "BUILDING");
-        mainContainer.add(new BureaucracyPanel(this), "BUREAUCRACY");
-        mainContainer.add(new ResultsPanel(this), "RESULTS");
+        mainContainer.add(new StartPanel(this),  "START");
+        mainContainer.add(new SetupPanel(this),  "SETUP");
+        mainContainer.add(playerOrderPanel,      "ORDER");
+        mainContainer.add(biddingPanel,          "BIDDING");
+        mainContainer.add(resourcePanel,         "RESOURCE");
+        mainContainer.add(buildingPanel,         "BUILDING");
+        mainContainer.add(bureaucracyPanel,      "BUREAUCRACY");
 
         add(mainContainer);
         setVisible(true);
@@ -71,9 +74,11 @@ public class PowergridFrame extends JFrame {
 
         // Phase-specific initialisation hooks.
         switch (name) {
-            case "BIDDING"   -> biddingPanel.startAuctionPhase();
-            case "RESOURCE"  -> resourcePanel.startBuyingPhase();
-            case "BUILDING"  -> buildingPanel.startBuildingPhase();
+            case "ORDER"        -> playerOrderPanel.startOrderPhase();
+            case "BIDDING"      -> biddingPanel.startAuctionPhase();
+            case "RESOURCE"     -> resourcePanel.startBuyingPhase();
+            case "BUILDING"     -> buildingPanel.startBuildingPhase();
+            case "BUREAUCRACY"  -> bureaucracyPanel.startBureaucracyPhase();   // ← added
         }
     }
 
