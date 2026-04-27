@@ -51,11 +51,11 @@ public class BiddingPanel extends JPanel implements MouseListener {
         add(powerplantDropdown);
 
         bidInput = new JTextField();
-        bidInput.setBounds(1341, 407, 120, 20);
+        bidInput.setBounds(1341, 492, 120, 20);
         add(bidInput);
 
         bidButton = new JButton("BID");
-        bidButton.setBounds(1341, 475, 120, 40);
+        bidButton.setBounds(1341, 560, 120, 40);
         bidButton.setFont(new Font("Arial", Font.BOLD, 20));
         bidButton.setBackground(new Color(125, 203, 178));
         bidButton.setForeground(Color.white);
@@ -72,7 +72,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         add(bidButton);
 
         passButton = new JButton("PASS");
-        passButton.setBounds(1341, 551, 120, 40);
+        passButton.setBounds(1341, 636, 120, 40);
         passButton.setFont(new Font("Arial", Font.BOLD, 20));
         passButton.setBackground(new Color(237, 174, 174));
         passButton.setForeground(Color.white);
@@ -282,6 +282,29 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 else {
                     System.out.println("No image for " + p.getNumber());
                 }
+                x += 132;
+            }
+
+            x=918;
+            List<Powerplant> sortedFuture = new ArrayList<>(rm.getDeck().getFutureMarket());
+            sortedFuture.sort(Comparator.comparingInt(Powerplant::getNumber));
+            for (Powerplant p : sortedFuture) {
+                BufferedImage img = getPlantImage(p.getNumber());
+                if (img != null) {
+                    // Draw plant image at reduced opacity by painting grey on top
+                    g.drawImage(img, x, 354, 122, 122, null);
+                } else {
+                    g.setColor(new Color(60, 60, 80));
+                    g.fillRect(x, 209, 122, 122);
+                }
+                // Dark translucent overlay to show it's not buyable
+                g.setColor(new Color(0, 0, 0, 140));
+                g.fillRect(x, 354, 122, 122);
+                // "FUTURE" label
+                g.setColor(Color.LIGHT_GRAY);
+                g.setFont(new Font("Arial", Font.BOLD, 13));
+                g.drawString("FUTURE", x + 28, 354+68);
+                g.drawString("#" + p.getNumber(), x + 42, 295);
                 x += 132;
             }
 
@@ -509,7 +532,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
 
     // Unused MouseListener methods
-    @Override public void mouseClicked(MouseEvent e) {}
+    @Override public void mouseClicked(MouseEvent e) {
+        System.out.println("(" + e.getX() + ", " + e.getY() + ")");
+    }
     @Override public void mousePressed(MouseEvent e) {}
     @Override public void mouseReleased(MouseEvent e) {}
     @Override public void mouseEntered(MouseEvent e) {}

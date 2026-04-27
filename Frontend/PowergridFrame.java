@@ -43,6 +43,7 @@ public class PowergridFrame extends JFrame {
         market.initializeStartingResources();
 
         roundManager = new RoundManager(players, board, market, new PowerplantDeck());
+        roundManager.handleDetermineOrder();
 
         biddingPanel     = new BiddingPanel(this);
         resourcePanel    = new ResourcePanel(this);
