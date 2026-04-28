@@ -252,12 +252,12 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     }
 
     private void paintHand(Graphics g) {
-        g.setColor(new Color(250, 226, 120));
+        g.setColor(PanelUtils.parseColor(currentPlayer.getColor()));
         g.fillOval(1460, 695, 120, 120);
 
-        g.setFont(new Font("Arial", Font.BOLD, 28));
+        g.setFont(new Font("Arial", Font.PLAIN, 50));
         g.setColor(Color.WHITE);
-        g.drawString("$" + currentPlayer.getMoney(), 1468, 762);
+        g.drawString("$" + currentPlayer.getMoney(), 1480, 770);
 
         g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(Color.WHITE);

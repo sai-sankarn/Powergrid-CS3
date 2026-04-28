@@ -43,7 +43,19 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         continueButton.setForeground(Color.WHITE);
         continueButton.setOpaque(true);
         continueButton.setBorderPainted(false);
-        continueButton.addActionListener(e -> frame.showScreen("BIDDING"));
+
+        // DYNAMIC TRANSITION LOGIC
+        continueButton.addActionListener(e -> {
+            // If we are in the Auction phase, the next step is Bidding
+            if (rm.getCurrentState() == Backend.GameState.AUCTION) {
+                frame.showScreen("BIDDING");
+            }
+            // If we are in the Buying phase (special Round 1 transition), go to Resources
+            else if (rm.getCurrentState() == Backend.GameState.BUYING) {
+                frame.showScreen("RESOURCE");
+            }
+        });
+
         add(continueButton);
     }
 

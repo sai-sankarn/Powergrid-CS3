@@ -116,8 +116,19 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
     private void endAuctionPhase() {
         RoundManager rm = frame.getRoundManager();
-        rm.nextPhase();
-        frame.showScreen("RESOURCE");
+
+        if (rm.isFirstRound()) {
+            // 1. Redetermine order based on the plants just purchased
+            rm.updateTurnOrder();
+            // 2. Move state to BUYING (nextPhase handles reverse order index)
+            rm.nextPhase();
+            // 3. Show the new order to players
+            frame.showScreen("ORDER");
+        } else {
+            // Normal flow for subsequent rounds
+            rm.nextPhase();
+            frame.showScreen("RESOURCE");
+        }
     }
 
     private void setupBiddersForAuction(Player initiator) {
@@ -147,19 +158,69 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
     private void resolveAuction() {
         RoundManager rm = frame.getRoundManager();
+
+        // Capture the plant being auctioned before resolution resets it
+        Powerplant wonPlant = rm.getCurrentAuctionPlant();
+        int wonPlantNumber = (wonPlant != null) ? wonPlant.getNumber() : -1;
+
         Player winner = rm.resolveAuction();
 
-        // FIX: Reset the state BEFORE showing the blocking JOptionPane
+        // Reset the UI state
         isAuctionActive = false;
         currentBidders.clear();
         bidInput.setText("");
 
         if (winner != null) {
-            JOptionPane.showMessageDialog(this, winner.getName() + " won the plant!");
+            // FIX: If the player has 3 plants and the one they won ISN'T one of them,
+            // it means addPowerplant() returned false and they need to replace one.
+            if (winner.getPowerplants().size() == 3 && !winner.getPowerplants().contains(wonPlant)) {
+                handlePlantReplacement(winner, wonPlant);
+            } else {
+                JOptionPane.showMessageDialog(this, winner.getName() + " won the plant!");
+            }
         }
 
-        // The initiator's turn starts again if someone ELSE won their plant.
         findNextInitiator();
+    }
+
+    /**
+     * Triggered when a player wins a 4th plant. Shows a popup to select which
+     * of the existing 3 plants to discard to make room for the new one.
+     */
+    private void handlePlantReplacement(Player winner, Powerplant wonPlant) {
+        RoundManager rm = frame.getRoundManager();
+        List<Powerplant> plants = winner.getPowerplants();
+
+        // Create buttons for the 3 plants currently owned
+        String[] options = new String[3];
+        for (int i = 0; i < 3; i++) {
+            options[i] = "Discard #" + plants.get(i).getNumber();
+        }
+
+        int choice = JOptionPane.showOptionDialog(
+                this,
+                winner.getName() + " already owns 3 plants.\nChoose an existing plant to replace with #" + wonPlant.getNumber() + ":",
+                "Powerplant Limit Reached",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                options,
+                options[0]
+        );
+
+        // Default to discarding the first plant if they close the window
+        if (choice == JOptionPane.CLOSED_OPTION) choice = 0;
+
+        Powerplant toDiscard = plants.get(choice);
+
+        // USE BACKEND LOGIC: This handles removing the old, adding the new,
+        // and moving resources.
+        rm.resolvePlantDiscard(winner, toDiscard, wonPlant);
+
+        JOptionPane.showMessageDialog(this,
+                winner.getName() + " discarded #" + toDiscard.getNumber() + " and kept #" + wonPlant.getNumber());
+
+        repaint();
     }
 
     public void handleBid(int amount) {
