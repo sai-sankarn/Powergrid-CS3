@@ -9,6 +9,7 @@ import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class BuildingPanel extends JPanel implements MouseListener {
 
@@ -85,18 +86,22 @@ public class BuildingPanel extends JPanel implements MouseListener {
         buildBtn.setBackground(new Color(150, 196, 188));
         buildBtn.setForeground(Color.WHITE);
         buildBtn.setOpaque(true);
-        buildBtn.setBorderPainted(false);
+        buildBtn.setBorderPainted(true);
+        buildBtn.setBorder(new LineBorder(Color.GRAY));
         buildBtn.setBounds(1330, 300, 200, 150);
+        buildBtn.setToolTipText("Build selected city");
         buildBtn.addActionListener(e -> handleBuild());
         add(buildBtn);
 
         doneBtn = new JButton("DONE");
         doneBtn.setFont(new Font("Arial", Font.BOLD, 35));
-        doneBtn.setBackground(new Color(206, 127, 129));
+        doneBtn.setBackground(new Color(237, 174, 174));
         doneBtn.setForeground(Color.WHITE);
         doneBtn.setOpaque(true);
-        doneBtn.setBorderPainted(false);
+        doneBtn.setBorderPainted(true);
+        doneBtn.setBorder(new LineBorder(Color.GRAY));
         doneBtn.setBounds(1330, 500, 200, 100);
+        doneBtn.setToolTipText("Done building cities");
         doneBtn.addActionListener(e -> advanceTurn());
         add(doneBtn);
     }

@@ -44,6 +44,7 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         continueButton.setOpaque(true);
         continueButton.setBorderPainted(true);
         continueButton.setBorder(new LineBorder(Color.GRAY));
+        continueButton.setToolTipText("Continue to next phase");
 
         // DYNAMIC TRANSITION LOGIC
         continueButton.addActionListener(e -> {

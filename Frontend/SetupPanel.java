@@ -1,15 +1,13 @@
 package Frontend;
 
-import Backend.RoundManager;
-
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
-import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.border.LineBorder;
 
 public class SetupPanel extends JPanel implements MouseListener{
     PowergridFrame frame;
@@ -42,7 +40,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         teal.setBackground(new Color(150, 196, 188));
         teal.setForeground(Color.WHITE);
         teal.setOpaque(true);
-        teal.setBorderPainted(false);
+        teal.setBorderPainted(true);
+        teal.setBorder(new LineBorder(Color.GRAY));
         teal.setBounds(1036, 271+50, 200, 100);
         teal.setVisible(true);
         teal.addActionListener(e -> handleClick(teal));
@@ -53,7 +52,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         brown.setBackground(new Color(182,132,105));
         brown.setForeground(Color.WHITE);
         brown.setOpaque(true);
-        brown.setBorderPainted(false);
+        brown.setBorderPainted(true);
+        brown.setBorder(new LineBorder(Color.GRAY));
         brown.setBounds(1313, 271+50, 200, 100);
         brown.setVisible(true);
         brown.addActionListener(e -> handleClick(brown));
@@ -64,7 +64,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         red.setBackground(new Color(206,127,129));
         red.setForeground(Color.WHITE);
         red.setOpaque(true);
-        red.setBorderPainted(false);
+        red.setBorderPainted(true);
+        red.setBorder(new LineBorder(Color.GRAY));
         red.setBounds(1036, 400+50, 200, 100);
         red.setVisible(true);
         red.addActionListener(e -> handleClick(red));
@@ -75,7 +76,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         yellow.setForeground(Color.WHITE);
         yellow.setFont(new Font("Arial", Font.BOLD, 40));
         yellow.setOpaque(true);
-        yellow.setBorderPainted(false);
+        yellow.setBorderPainted(true);
+        yellow.setBorder(new LineBorder(Color.GRAY));
         yellow.setBounds(1313, 400+50, 200, 100);
         yellow.setVisible(true);
         yellow.addActionListener(e -> handleClick(yellow));
@@ -86,7 +88,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         blue.setForeground(Color.WHITE);
         blue.setFont(new Font("Arial", Font.BOLD, 40));
         blue.setOpaque(true);
-        blue.setBorderPainted(false);
+        blue.setBorderPainted(true);
+        blue.setBorder(new LineBorder(Color.GRAY));
         blue.setBounds(1036, 530+50, 200, 100);
         blue.setVisible(true);
         blue.addActionListener(e -> handleClick(blue));
@@ -97,7 +100,8 @@ public class SetupPanel extends JPanel implements MouseListener{
         purple.setForeground(Color.WHITE);
         purple.setFont(new Font("Arial", Font.BOLD, 40));
         purple.setOpaque(true);
-        purple.setBorderPainted(false);
+        purple.setBorderPainted(true);
+        purple.setBorder(new LineBorder(Color.GRAY));
         purple.setBounds(1313, 530+50, 200, 100);
         purple.setVisible(true);
         purple.addActionListener(e -> handleClick(purple));

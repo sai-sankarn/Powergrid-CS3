@@ -79,7 +79,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         done.setBorderPainted(true);
         done.setBorder(new LineBorder(Color.GRAY));
         done.setBounds(1140, 540, 200, 80);
-        done.setToolTipText("DONE");
+        done.setToolTipText("Done powering plants");
         done.setVisible(true);
         done.addActionListener(e -> handleDone());
         add(done);
@@ -93,7 +93,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             b.setOpaque(true);
             b.setBorderPainted(true);
             b.setBorder(new LineBorder(Color.GRAY));
-            b.setToolTipText("Power this powerplant");
+            b.setToolTipText("Power/cancel power");
             b.setBackground(BTN_UNSELECTED);
             b.setForeground(Color.WHITE);
             b.setVisible(false);
@@ -107,8 +107,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         nextPlayer.setBackground(new Color(100, 180, 100));
         nextPlayer.setForeground(Color.WHITE);
         nextPlayer.setOpaque(true);
-        nextPlayer.setBorderPainted(false);
+        nextPlayer.setBorderPainted(true);
+        nextPlayer.setBorder(new LineBorder(Color.GRAY));
         nextPlayer.setBounds(1100, 640, 280, 70);
+        nextPlayer.setToolTipText("Continue to next player");
         nextPlayer.setVisible(false);
         nextPlayer.addActionListener(e -> {
             bureauPlayerIndex++;

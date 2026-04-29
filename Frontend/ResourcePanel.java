@@ -102,6 +102,7 @@ public class ResourcePanel extends JPanel {
         doneBtn.setOpaque(true);
         doneBtn.setBorderPainted(true);
         doneBtn.setBorder(new LineBorder(Color.GRAY));
+        doneBtn.setToolTipText("Done buying resources");
         doneBtn.addActionListener(e -> advanceTurn());
         add(doneBtn);
     }
@@ -114,6 +115,7 @@ public class ResourcePanel extends JPanel {
         btn.setBounds(x, y, 150, 50);
         btn.setOpaque(true);
         btn.setBorderPainted(true);
+        btn.setToolTipText("Buy one resource");
         btn.setBorder(new LineBorder(Color.GRAY));
         return btn;
     }

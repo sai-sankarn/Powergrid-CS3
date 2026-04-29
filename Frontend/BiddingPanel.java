@@ -67,7 +67,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bidButton.setOpaque(true);
         bidButton.setBorderPainted(true);
         bidButton.setBorder(new LineBorder(Color.GRAY));
-        bidButton.setToolTipText("BID");
+        bidButton.setToolTipText("Confirm bid");
         bidButton.addActionListener(e -> {
             try {
                 int amount = Integer.parseInt(bidInput.getText());
@@ -86,13 +86,13 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setOpaque(true);
         passButton.setBorderPainted(true);
         passButton.setBorder(new LineBorder(Color.GRAY));
-        passButton.setToolTipText("PASS");
+        passButton.setToolTipText("Pass this round");
         passButton.addActionListener(e -> handlePass());
         add(passButton);
 
-        replaceButton1 = new JButton("POWER");
-        replaceButton2 = new JButton("POWER");
-        replaceButton3 = new JButton("POWER");
+        replaceButton1 = new JButton("REPLACE");
+        replaceButton2 = new JButton("REPLACE");
+        replaceButton3 = new JButton("REPLACE");
         replaceButtons = new ArrayList<>();
         replaceButtons.add(replaceButton1);
         replaceButtons.add(replaceButton2);
@@ -106,7 +106,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
             b.setBorder(new LineBorder(Color.GRAY));
             b.setBackground(new Color(165, 175, 207));
             b.setForeground(Color.WHITE);
-            b.setToolTipText("POWER");
+            b.setToolTipText("Replace this powerplant");
             b.setVisible(true);
             //b.addActionListener(e -> handleReplace(b));
             add(b);
