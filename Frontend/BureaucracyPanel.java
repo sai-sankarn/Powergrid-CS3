@@ -246,7 +246,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         // Always paint the cities/tracker on the map
         PanelUtils.paintCities(g, roundManager);
         PanelUtils.paintTurnOrderIndicators(g,roundManager);
-        PanelUtils.paintResourceIcons(g,roundManager.getResourceMarket());
+        PanelUtils.paintResourceIcons(g,roundManager.getResourceMarket(), frame.getRoundManager());
 
         if (currentPlayer != null) paintHand(g);
     }

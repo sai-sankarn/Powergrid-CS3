@@ -42,39 +42,55 @@ public final class PanelUtils {
     // ── Cities and Board Tracker ──────────────────────────────────────────────
 
     /**
-     * Paints all owned cities on the map and the active player's city-count tracker.
-     * The tracker is only drawn for the player currently in the building phase.
-     */
-    /**
-     * Paints all owned cities on the map and the city-count tracker for EVERY player.
-     * Markers on the tracker will overlap if players have the same number of cities.
+     * Paints all owned cities on the map using slot-based positioning for Step 2/3.
+     * Also paints markers on the city-count tracker with offsets to prevent stacking.
      */
     public static void paintCities(Graphics g, RoundManager rm) {
         if (rm == null) return;
 
+        // Tracks how many markers we've drawn for each city to assign slots 1, 2, or 3
+        Map<String, Integer> cityOccupancy = new HashMap<>();
+        // Tracks how many markers are at each number on the tracker to prevent overlapping
+        Map<Integer, Integer> trackerOccupancy = new HashMap<>();
+
         for (Player p : rm.getPlayers()) {
             Color c = parseColor(p.getColor());
 
-            // 1. Paint cities on the map for this player
+            // 1. Paint cities on the map using your provided coordinates
             for (City city : p.getOwnedCities()) {
                 Point pt = Constants.CityCoordinates.coordinates.get(city.getName());
                 if (pt == null) continue;
 
+                int slot = cityOccupancy.getOrDefault(city.getName(), 0);
                 g.setColor(c);
-                g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
+
+                if (slot == 0) {
+                    // Step 1 slot (10 Electro)
+                    g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
+                } else if (slot == 1) {
+                    // Step 2 slot (15 Electro)
+                    g.fillRect(pt.x - 20, pt.y, 20, 20);
+                } else if (slot == 2) {
+                    // Step 3 slot (20 Electro)
+                    g.fillRect(pt.x + 20, pt.y, 20, 20);
+                }
+
+                cityOccupancy.put(city.getName(), slot + 1);
             }
 
-            // 2. Paint this player's marker on the city-count tracker
+            // 2. Paint tracker markers (with a small 5px offset if players are tied)
             int count = p.getCityCount();
+            int stackOffset = trackerOccupancy.getOrDefault(count, 0) * 5;
             g.setColor(c);
 
-            if (count > 0 && count <= 7) {
+            if (count >= 0 && count <= 7) {
                 // First row of the tracker
-                g.fillRect(410 + count * 65, 16, 20, 20);
+                g.fillRect(410 + (count * 65) + stackOffset, 16 + stackOffset, 20, 20);
             } else if (count > 7) {
                 // Second row of the tracker
-                g.fillRect(410 + (count - 7) * 32, 47, 20, 20);
+                g.fillRect(410 + ((count - 7) * 32) + stackOffset, 47 + stackOffset, 20, 20);
             }
+            trackerOccupancy.put(count, trackerOccupancy.getOrDefault(count, 0) + 1);
         }
     }
 
@@ -148,7 +164,7 @@ public final class PanelUtils {
 
     // ── Resource market icons ─────────────────────────────────────────────────
 
-    public static void paintResourceIcons(Graphics g, ResourceMarket market) {
+    public static void paintResourceIcons(Graphics g, ResourceMarket market, RoundManager roundManager) {
         if (market == null) return;
 
         int coalCount    = market.getAvailableAmount(ResourceType.COAL);
@@ -216,6 +232,16 @@ public final class PanelUtils {
                 case 3 -> { x = 774; y = 925; w = 13; h = 10; }
                 default -> x -= 98;
             }
+        }
+
+        g.setFont(new Font("Arial", Font.BOLD, 15));
+        g.setColor(parseColor("yellow"));
+        g.drawString("Resource Replenish Schedule:",20,65);
+        String[] replenishStrings = market.getReplenishValues(roundManager);
+        y=80;
+        for (int i=0;i<4;i++){
+            g.drawString(replenishStrings[i],20,y);
+            y+=15;
         }
     }
 

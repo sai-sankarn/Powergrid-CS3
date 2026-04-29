@@ -263,7 +263,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         }
         paintHeader(g);
         PanelUtils.paintCities(g,frame.getRoundManager());
-        PanelUtils.paintResourceIcons(g,frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintResourceIcons(g,frame.getRoundManager().getResourceMarket(), frame.getRoundManager());
         PanelUtils.paintHand(g, getCurrentBuildingPlayer(), plantImageCache);
         PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());
     }

@@ -404,7 +404,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
             player = rm.getTurnOrder().get(auctionInitiatorIndex);
         }
 
-        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket(), frame.getRoundManager());
         PanelUtils.paintHand(g,player,plantImages);
         PanelUtils.paintCities(g, frame.getRoundManager());
         PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());

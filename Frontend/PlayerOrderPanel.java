@@ -102,7 +102,7 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         }
 
         // Utility overlays
-        PanelUtils.paintResourceIcons(g, rm.getResourceMarket());
+        PanelUtils.paintResourceIcons(g, rm.getResourceMarket(), rm);
         PanelUtils.paintTurnOrderIndicators(g, rm);
         PanelUtils.paintCities(g, rm);
     }

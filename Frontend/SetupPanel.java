@@ -114,7 +114,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         g.drawString("Player " + (int)(count+1) + ": Select A Color That Corresponds", 969,174);
         g.drawString("To The Area You Want",1093,201);
 
-        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket(),frame.getRoundManager());
         PanelUtils.paintTurnOrderIndicators(g, frame.getRoundManager());
 
 

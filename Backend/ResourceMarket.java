@@ -174,6 +174,15 @@ public class ResourceMarket {
         }
     }
 
+    public String[] getReplenishValues(RoundManager rm){
+        String[] x = new String[4];
+        x[0]="Coal: " + COAL_REPLENISH[3-2][rm.getCurrentStep()-1];
+        x[1] = "Oil: " + OIL_REPLENISH[3-2][rm.getCurrentStep()-1] + "\n";
+        x[2]="Trash: " + TRASH_REPLENISH[3-2][rm.getCurrentStep()-1] + "\n";
+        x[3]="Uranium: " + URANIUM_REPLENISH[3-2][rm.getCurrentStep()-1] + "\n";
+        return x;
+    }
+
     /**
      * Internal helper: adds `amount` tokens to a slot array, filling most-expensive-first.
      * Stops if supply runs out (amount exhausted).

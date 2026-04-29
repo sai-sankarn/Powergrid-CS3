@@ -204,7 +204,7 @@ public class ResourcePanel extends JPanel {
             g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         }
         paintText(g);
-        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket(), frame.getRoundManager());
         PanelUtils.paintHand(g, getCurrentBuyingPlayer(), plantImageCache);
         PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());
     }
