@@ -111,7 +111,7 @@ public class SetupPanel extends JPanel implements MouseListener{
         g.setColor(Color.WHITE);
         g.drawString("SETUP: CHOOSE AREA", 1050, 49);
         g.setFont(new Font("ARIAL",Font.BOLD,30));
-        g.drawString("Player 1: Select A Color That Corresponds", 969,174);
+        g.drawString("Player " + (int)(count+1) + ": Select A Color That Corresponds", 969,174);
         g.drawString("To The Area You Want",1093,201);
 
         PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket());
@@ -125,9 +125,10 @@ public class SetupPanel extends JPanel implements MouseListener{
     public void handleClick(JButton button) {
         button.setVisible(false);
         count++;
-        if (count == 4){
+        if (count == 3){
             frame.showScreen("ORDER");
         }
+        repaint();
     }
 
     @Override

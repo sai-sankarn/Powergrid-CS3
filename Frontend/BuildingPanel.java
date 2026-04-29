@@ -261,8 +261,10 @@ public class BuildingPanel extends JPanel implements MouseListener {
             g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
         }
         paintHeader(g);
-        paintCitiesOnBoard(g);
-        paintHand(g);
+        PanelUtils.paintCities(g,frame.getRoundManager());
+        PanelUtils.paintResourceIcons(g,frame.getRoundManager().getResourceMarket());
+        PanelUtils.paintHand(g, getCurrentBuildingPlayer(), plantImageCache);
+        PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());
     }
 
     private void paintHeader(Graphics g) {
@@ -287,105 +289,6 @@ public class BuildingPanel extends JPanel implements MouseListener {
         g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(Color.BLACK);
         g.drawString("Select a city from the dropdown:", 1000, 180);
-    }
-
-    /**
-     * Draws every player's occupied cities on the map using their player colour,
-     * and renders the city-count tracker square for the current player.
-     */
-    private void paintCitiesOnBoard(Graphics g) {
-        RoundManager rm = frame.getRoundManager();
-
-        for (Player p : rm.getPlayers()) {
-            Color c = parseColor(p.getColor());
-            for (City city : p.getOwnedCities()) {
-                Point pt = Constants.CityCoordinates.coordinates.get(city.getName());
-                if (pt == null) continue;
-                g.setColor(c);
-                g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
-            }
-        }
-
-        // City-count tracker for the active player only
-        Player player = getCurrentBuildingPlayer();
-        if (player != null) {
-            int count = player.getCityCount();
-            g.setColor(parseColor(player.getColor()));
-            if (count > 0 && count <= 7) {
-                g.fillRect(410 + count * 65, 16, 20, 20);
-            } else if (count > 7) {
-                g.fillRect(410 + (count - 7) * 32, 47, 20, 20);
-            }
-        }
-    }
-
-    private void paintHand(Graphics g) {
-        Player player = getCurrentBuildingPlayer();
-        if (player == null) return;
-
-        // Player colour avatar
-        g.setColor(parseColor(player.getColor()));
-        g.fillOval(1460, 695, 120, 120);
-
-        // Player name
-        g.setFont(new Font("Arial", Font.BOLD, 22));
-        g.setColor(Color.WHITE);
-        g.drawString(player.getName(), 1180, 700);
-
-        // Powerplants (up to 3, loaded by card number)
-        List<Powerplant> plants = new ArrayList<>(player.getPowerplants());
-        int px = 900;
-        for (int i = 0; i < Math.min(plants.size(), 3); i++) {
-            int plantNum = plants.get(i).getNumber();
-            BufferedImage img = getPlantImage(plantNum);
-            if (img != null) {
-                g.drawImage(img, px, 770, 180, 180, null);
-            } else {
-                // Fallback: labelled placeholder rectangle
-                g.setColor(new Color(60, 60, 80));
-                g.fillRect(px, 770, 180, 180);
-                g.setColor(Color.WHITE);
-                g.setFont(new Font("Arial", Font.BOLD, 28));
-                g.drawString("#" + plantNum, px + 55, 870);
-            }
-            px += 185;
-        }
-
-        // Money
-        g.setFont(new Font("Arial", Font.PLAIN, 50));
-        g.setColor(Color.WHITE);
-        g.drawString("$" + player.getMoney(), 1480, 770);
-
-        // Resource inventory
-        paintInventory(g, player);
-    }
-
-    private void paintInventory(Graphics g, Player player) {
-        Map<ResourceType, Integer> stored;
-        try {
-            stored = player.getStoredResources();
-        } catch (Exception ex) {
-            stored = Collections.emptyMap();
-        }
-
-        int coal    = stored.getOrDefault(ResourceType.COAL,    0);
-        int oil     = stored.getOrDefault(ResourceType.OIL,     0);
-        int trash   = stored.getOrDefault(ResourceType.TRASH,   0);
-        int uranium = stored.getOrDefault(ResourceType.URANIUM, 0);
-
-        // Colour swatches
-        g.setColor(new Color(92, 50, 5));  g.fillRect(1475, 832, 25, 25);
-        g.setColor(Color.BLACK);           g.fillRect(1475, 862, 25, 25);
-        g.setColor(Color.YELLOW);          g.fillRect(1475, 892, 25, 25);
-        g.setColor(Color.RED);             g.fillRect(1475, 922, 25, 25);
-
-        // Counts
-        g.setFont(new Font("Arial", Font.PLAIN, 20));
-        g.setColor(Color.WHITE);
-        g.drawString(String.valueOf(coal),    1510, 850);
-        g.drawString(String.valueOf(oil),     1510, 880);
-        g.drawString(String.valueOf(trash),   1510, 910);
-        g.drawString(String.valueOf(uranium), 1510, 940);
     }
 
     // -----------------------------------------------------------------------

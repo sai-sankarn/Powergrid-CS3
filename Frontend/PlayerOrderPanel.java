@@ -2,9 +2,7 @@ package Frontend;
 
 import Backend.Player;
 import Backend.RoundManager;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
+import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
@@ -17,12 +15,9 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
 
     private BufferedImage background;
     private PowergridFrame frame;
-
     private RoundManager rm;
-
     private JButton continueButton;
 
-    // Fixed Y positions for the three player slots
     private static final int[] BOX_Y = { 120, 340, 560 };
 
     public PlayerOrderPanel(PowergridFrame frame) {
@@ -49,14 +44,22 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         continueButton.setOpaque(true);
         continueButton.setBorderPainted(true);
         continueButton.setBorder(new LineBorder(Color.GRAY));
-        continueButton.addActionListener(e -> frame.showScreen("BIDDING"));
+
+        // DYNAMIC TRANSITION LOGIC
+        continueButton.addActionListener(e -> {
+            // If we are in the Auction phase, the next step is Bidding
+            if (rm.getCurrentState() == Backend.GameState.AUCTION) {
+                frame.showScreen("BIDDING");
+            }
+            // If we are in the Buying phase (special Round 1 transition), go to Resources
+            else if (rm.getCurrentState() == Backend.GameState.BUYING) {
+                frame.showScreen("RESOURCE");
+            }
+        });
+
         add(continueButton);
     }
 
-    /**
-     * Called by PowergridFrame.showScreen("ORDER").
-     * Forces a repaint so the panel always reflects the latest turn order.
-     */
     public void startOrderPhase() {
         repaint();
     }
@@ -65,45 +68,44 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+        if (background != null) {
+            g.drawImage(background, 0, 0, getWidth(), getHeight(), null);
+        }
 
         // Header
         g.setFont(new Font("Arial", Font.BOLD, 40));
         g.setColor(Color.WHITE);
         g.drawString("STEP " + rm.getCurrentStep() + ", PHASE 1: PLAYER ORDER", 900, 49);
 
-        // Read the sorted order fresh on every paint — guaranteed to reflect
-        // whatever RoundManager.updateTurnOrder() produced at end of bureaucracy.
         List<Player> order = rm.getTurnOrder();
-
-        Color[] boxColors = {
-                new Color(67,  126, 161),   // 1st place — blue
-                new Color(237, 174, 174),   // 2nd place — pink
-                new Color(250, 226, 120),   // 3rd place — yellow
-        };
-
-        g.setFont(new Font("Arial", Font.BOLD, 40));
 
         for (int i = 0; i < Math.min(order.size(), BOX_Y.length); i++) {
             Player p = order.get(i);
             int y = BOX_Y[i];
 
-            // Box
-            g.setColor(boxColors[i]);
+            // FIXED: Get the player's specific color from PanelUtils
+            Color playerColor = PanelUtils.parseColor(p.getColor());
+
+            // Draw Box Background
+            g.setColor(playerColor);
             g.fillRect(980, y, 500, 200);
+
+            // Draw Box Border
             g.setColor(Color.BLACK);
             g.drawRect(980, y, 500, 200);
 
-            // Player info — name comes from the actual Player object
+            // Player info
+            // Note: If the box is very dark, you might want to switch text to Color.WHITE
             g.setFont(new Font("Arial", Font.BOLD, 40));
             g.setColor(Color.BLACK);
-            g.drawString((i + 1) + ". " + p.getName() + ": " + p.getCityCount() + " cities",       1000, y + 70);
-            g.drawString("Biggest plant: " + p.getHighestPlantNumber(),                              1000, y + 140);
+            g.drawString((i + 1) + ". " + p.getName() + ": " + p.getCityCount() + " cities", 1000, y + 70);
+            g.drawString("Biggest plant: " + p.getHighestPlantNumber(), 1000, y + 140);
         }
-    }
 
-    private void endOrderPhase() {
-        frame.showScreen("BIDDING");
+        // Utility overlays
+        PanelUtils.paintResourceIcons(g, rm.getResourceMarket());
+        PanelUtils.paintTurnOrderIndicators(g, rm);
+        PanelUtils.paintCities(g, rm);
     }
 
     @Override public void mouseClicked(MouseEvent e)  { System.out.println("(" + e.getX() + ", " + e.getY() + ")"); }
