@@ -88,7 +88,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         add(passButton);
 
         discardedPlantsButton = new JButton("Discarded Powerplants");
-        discardedPlantsButton.setBounds(1439, 27, 200, 32);
+        discardedPlantsButton.setBounds(1411, 27, 175, 32);
         discardedPlantsButton.setFont(new Font("Arial", Font.BOLD, 13));
         discardedPlantsButton.setBackground(new Color(80, 80, 80));
         discardedPlantsButton.setForeground(Color.WHITE);
@@ -442,45 +442,67 @@ public class BiddingPanel extends JPanel implements MouseListener {
             Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
             g.drawString("Waiting for: " + initiator.getName() + " to pick a plant or Pass", 963, 100);
 
-            // FIX: Copy and sort the market before drawing
-            int x = 918;
-            List<Powerplant> sortedMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
-            sortedMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
+            int currentStep = rm.getCurrentStep();
 
-            for (Powerplant p : sortedMarket) {
-                BufferedImage img = getPlantImage(p.getNumber());
-                if (img != null) {
-                    g.drawImage(img, x, 209, 122, 122, null);
-                } else {
-                    System.out.println("No image for " + p.getNumber());
-                }
-                x += 132;
-            }
+            if (currentStep < 3) {
+                // --- STEP 1 & 2: 4 CURRENT (TOP), 4 FUTURE (BOTTOM) ---
 
-            x=918;
-            List<Powerplant> sortedFuture = new ArrayList<>(rm.getDeck().getFutureMarket());
-            sortedFuture.sort(Comparator.comparingInt(Powerplant::getNumber));
-            for (Powerplant p : sortedFuture) {
-                BufferedImage img = getPlantImage(p.getNumber());
-                if (img != null) {
-                    // Draw plant image at reduced opacity by painting grey on top
-                    g.drawImage(img, x, 354, 122, 122, null);
-                } else {
-                    g.setColor(new Color(60, 60, 80));
-                    g.fillRect(x, 209, 122, 122);
+                // Draw Current Market (Top Row)
+                int x = 918;
+                List<Powerplant> sortedMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
+                sortedMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
+                for (Powerplant p : sortedMarket) {
+                    BufferedImage img = getPlantImage(p.getNumber());
+                    if (img != null) g.drawImage(img, x, 209, 122, 122, null);
+                    x += 132;
                 }
-                // Dark translucent overlay to show it's not buyable
-                g.setColor(new Color(0, 0, 0, 140));
-                g.fillRect(x, 354, 122, 122);
-                // "FUTURE" label
-                g.setColor(Color.LIGHT_GRAY);
-                g.setFont(new Font("Arial", Font.BOLD, 13));
-                g.drawString("FUTURE", x + 28, 354+68);
-                g.drawString("#" + p.getNumber(), x + 42, 437);
-                x += 132;
+
+                // Draw Future Market (Bottom Row - Dimmed)
+                x = 918;
+                List<Powerplant> sortedFuture = new ArrayList<>(rm.getDeck().getFutureMarket());
+                sortedFuture.sort(Comparator.comparingInt(Powerplant::getNumber));
+                for (Powerplant p : sortedFuture) {
+                    BufferedImage img = getPlantImage(p.getNumber());
+                    if (img != null) {
+                        g.drawImage(img, x, 354, 122, 122, null);
+                        // Dark translucent overlay to show it's not buyable
+                        g.setColor(new Color(0, 0, 0, 140));
+                        g.fillRect(x, 354, 122, 122);
+                        g.setColor(Color.LIGHT_GRAY);
+                        g.setFont(new Font("Arial", Font.BOLD, 13));
+                        g.drawString("FUTURE", x + 28, 354 + 68);
+                        g.drawString("#" + p.getNumber(), x + 42, 437);
+                    }
+                    x += 132;
+                }
+            } else {
+                // --- STEP 3: 6 PLANTS (3 ON TOP, 3 ON BOTTOM) ---
+                // In Step 3, all plants in the deck's currentMarket are available.
+                List<Powerplant> allMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
+                allMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
+
+                for (int i = 0; i < Math.min(allMarket.size(), 6); i++) {
+                    Powerplant p = allMarket.get(i);
+                    int row = i / 3; // 0 for top row, 1 for bottom row
+                    int col = i % 3; // 0, 1, or 2
+
+                    int x = 918 + (col * 132);
+                    int y = (row == 0) ? 209 : 354;
+
+                    BufferedImage img = getPlantImage(p.getNumber());
+                    if (img != null) {
+                        g.drawImage(img, x, y, 122, 122, null);
+                        // Optional: Add a small "STEP 3" badge or label if desired
+                    }
+                }
+
+                g.setFont(new Font("Arial", Font.BOLD, 18));
+                g.setColor(Color.YELLOW);
+                g.drawString("STEP 3 ACTIVE: ALL PLANTS AVAILABLE", 963, 140);
             }
 
         } else {
+            // --- UI FOR BIDDING PHASE ---
             // --- UI FOR BIDDING PHASE ---
             Player activeBidder = currentBidders.get(activeBidderIndex);
             g.drawString("Current Turn: " + activeBidder.getName(), 963, 100);

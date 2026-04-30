@@ -109,7 +109,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         nextPlayer.setOpaque(true);
         nextPlayer.setBorderPainted(true);
         nextPlayer.setBorder(new LineBorder(Color.GRAY));
-        nextPlayer.setBounds(1100, 640, 280, 70);
+        nextPlayer.setBounds(1100, 630, 280, 70);
         nextPlayer.setToolTipText("Continue to next player");
         nextPlayer.setVisible(false);
         nextPlayer.addActionListener(e -> {
@@ -268,10 +268,10 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
         g.setFont(new Font("Arial", Font.PLAIN, 30));
         g.setColor(Color.WHITE);
-        g.drawString(currentPlayer.getName(), 1180, 700);
+        g.drawString(currentPlayer.getName(), 1180, 660);
 
         g.setFont(new Font("Arial", Font.PLAIN, 22));
-        g.drawString("Cities owned: " + currentPlayer.getCityCount(), 1180, 730);
+        g.drawString("Cities owned: " + currentPlayer.getCityCount(), 1180, 690);
 
         for (int i = 0; i < currentPlants.size(); i++) {
             int x = 900 + (i * 187);
