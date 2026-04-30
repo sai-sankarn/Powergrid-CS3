@@ -2,7 +2,6 @@ package Frontend;
 
 import Backend.Player;
 import Backend.RoundManager;
-
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -10,6 +9,7 @@ import java.awt.image.BufferedImage;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class PlayerOrderPanel extends JPanel implements MouseListener {
 
@@ -42,7 +42,9 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         continueButton.setBackground(new Color(125, 203, 178));
         continueButton.setForeground(Color.WHITE);
         continueButton.setOpaque(true);
-        continueButton.setBorderPainted(false);
+        continueButton.setBorderPainted(true);
+        continueButton.setBorder(new LineBorder(Color.GRAY));
+        continueButton.setToolTipText("Continue to next phase");
 
         // DYNAMIC TRANSITION LOGIC
         continueButton.addActionListener(e -> {

@@ -1,13 +1,13 @@
 package Frontend;
 
 import Backend.*;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 /**
  * Phase 3 – Buy Resources screen.
@@ -100,7 +100,9 @@ public class ResourcePanel extends JPanel {
         doneBtn.setForeground(Color.WHITE);
         doneBtn.setBounds(1148, 503, 200, 75);
         doneBtn.setOpaque(true);
-        doneBtn.setBorderPainted(false);
+        doneBtn.setBorderPainted(true);
+        doneBtn.setBorder(new LineBorder(Color.GRAY));
+        doneBtn.setToolTipText("Done buying resources");
         doneBtn.addActionListener(e -> advanceTurn());
         add(doneBtn);
     }
@@ -112,7 +114,9 @@ public class ResourcePanel extends JPanel {
         btn.setForeground(Color.WHITE);
         btn.setBounds(x, y, 150, 50);
         btn.setOpaque(true);
-        btn.setBorderPainted(false);
+        btn.setBorderPainted(true);
+        btn.setToolTipText("Buy one resource");
+        btn.setBorder(new LineBorder(Color.GRAY));
         return btn;
     }
 

@@ -1,7 +1,6 @@
 package Frontend;
 
 import Backend.*;
-
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -11,8 +10,10 @@ import java.awt.image.BufferedImage;
 import java.util.*;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.LineBorder;
 
 public class BiddingPanel extends JPanel implements MouseListener {
+
     private BufferedImage background;
     private PowergridFrame frame;
 
@@ -21,6 +22,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
     private JTextField bidInput;
     private JButton bidButton;
     private JButton passButton;
+    private JButton replaceButton1;
+    private JButton replaceButton2;
+    private JButton replaceButton3;
+    private List<JButton> replaceButtons;
 
     // Image Cache to load powerplant images dynamically
     private Map<Integer, BufferedImage> plantImages = new HashMap<>();
@@ -60,7 +65,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
         bidButton.setBackground(new Color(125, 203, 178));
         bidButton.setForeground(Color.white);
         bidButton.setOpaque(true);
-        bidButton.setBorderPainted(false);
+        bidButton.setBorderPainted(true);
+        bidButton.setBorder(new LineBorder(Color.GRAY));
+        bidButton.setToolTipText("Confirm bid");
         bidButton.addActionListener(e -> {
             try {
                 int amount = Integer.parseInt(bidInput.getText());
@@ -77,9 +84,33 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.setBackground(new Color(237, 174, 174));
         passButton.setForeground(Color.white);
         passButton.setOpaque(true);
-        passButton.setBorderPainted(false);
+        passButton.setBorderPainted(true);
+        passButton.setBorder(new LineBorder(Color.GRAY));
+        passButton.setToolTipText("Pass this round");
         passButton.addActionListener(e -> handlePass());
         add(passButton);
+
+        replaceButton1 = new JButton("REPLACE");
+        replaceButton2 = new JButton("REPLACE");
+        replaceButton3 = new JButton("REPLACE");
+        replaceButtons = new ArrayList<>();
+        replaceButtons.add(replaceButton1);
+        replaceButtons.add(replaceButton2);
+        replaceButtons.add(replaceButton3);
+        for (int i = 0; i < replaceButtons.size(); i++) {
+            JButton b = replaceButtons.get(i);
+            b.setBounds(900 + (i * 187), 715, 175, 45);
+            b.setFont(new Font("Arial", Font.BOLD, 20));
+            b.setOpaque(true);
+            b.setBorderPainted(true);
+            b.setBorder(new LineBorder(Color.GRAY));
+            b.setBackground(new Color(165, 175, 207));
+            b.setForeground(Color.WHITE);
+            b.setToolTipText("Replace this powerplant");
+            b.setVisible(true);
+            //b.addActionListener(e -> handleReplace(b));
+            add(b);
+        }
     }
 
     /**
@@ -92,8 +123,8 @@ public class BiddingPanel extends JPanel implements MouseListener {
     }
 
     /**
-     * Finds the next player in turn order who needs to initiate an auction.
-     * If all players are done, ends the phase.
+     * Finds the next player in turn order who needs to initiate an auction. If
+     * all players are done, ends the phase.
      */
     private void findNextInitiator() {
         RoundManager rm = frame.getRoundManager();
@@ -231,7 +262,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
             Player initiator = rm.getTurnOrder().get(auctionInitiatorIndex);
             Powerplant selectedPlant = (Powerplant) powerplantDropdown.getSelectedItem();
 
-            if (selectedPlant == null) return;
+            if (selectedPlant == null) {
+                return;
+            }
 
             if (amount < selectedPlant.getNumber()) {
                 JOptionPane.showMessageDialog(this, "Starting bid must be at least the plant's face value.");
@@ -320,7 +353,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
         }
 
         RoundManager rm = frame.getRoundManager();
-        if (rm == null || rm.getTurnOrder().isEmpty()) return;
+        if (rm == null || rm.getTurnOrder().isEmpty()) {
+            return;
+        }
 
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
@@ -339,8 +374,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 BufferedImage img = getPlantImage(p.getNumber());
                 if (img != null) {
                     g.drawImage(img, x, 209, 122, 122, null);
-                }
-                else {
+                } else {
                     System.out.println("No image for " + p.getNumber());
                 }
                 x += 132;
@@ -412,7 +446,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
     private void refreshDropdown() {
         RoundManager rm = frame.getRoundManager();
-        if (rm == null) return;
+        if (rm == null) {
+            return;
+        }
 
         powerplantDropdown.removeAllItems();
         powerplantDropdown.setVisible(true);
@@ -427,19 +463,26 @@ public class BiddingPanel extends JPanel implements MouseListener {
     }
 
     private Color parseColor(String colorName) {
-        if (colorName == null) return Color.LIGHT_GRAY;
+        if (colorName == null) {
+            return Color.LIGHT_GRAY;
+        }
         return switch (colorName.toLowerCase()) {
-            case "red"    -> new Color(220, 60,  60);
-            case "blue"   -> new Color(60,  100, 200);
-            case "green"  -> new Color(60,  160, 80);
-            case "yellow" -> new Color(220, 190, 50);
-            case "purple" -> new Color(130, 60,  180);
-            case "black"  -> Color.DARK_GRAY;
-            default       -> Color.LIGHT_GRAY;
+            case "red" ->
+                new Color(220, 60, 60);
+            case "blue" ->
+                new Color(60, 100, 200);
+            case "green" ->
+                new Color(60, 160, 80);
+            case "yellow" ->
+                new Color(220, 190, 50);
+            case "purple" ->
+                new Color(130, 60, 180);
+            case "black" ->
+                Color.DARK_GRAY;
+            default ->
+                Color.LIGHT_GRAY;
         };
     }
-
-
 
     // Unused MouseListener methods
     @Override public void mouseClicked(MouseEvent e) {
