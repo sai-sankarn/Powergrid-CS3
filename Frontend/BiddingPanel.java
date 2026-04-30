@@ -22,10 +22,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
     private JTextField bidInput;
     private JButton bidButton;
     private JButton passButton;
-    private JButton replaceButton1;
-    private JButton replaceButton2;
-    private JButton replaceButton3;
-    private List<JButton> replaceButtons;
+    private JButton discardedPlantsButton;
 
     // Image Cache to load powerplant images dynamically
     private Map<Integer, BufferedImage> plantImages = new HashMap<>();
@@ -90,27 +87,107 @@ public class BiddingPanel extends JPanel implements MouseListener {
         passButton.addActionListener(e -> handlePass());
         add(passButton);
 
-        replaceButton1 = new JButton("REPLACE");
-        replaceButton2 = new JButton("REPLACE");
-        replaceButton3 = new JButton("REPLACE");
-        replaceButtons = new ArrayList<>();
-        replaceButtons.add(replaceButton1);
-        replaceButtons.add(replaceButton2);
-        replaceButtons.add(replaceButton3);
-        for (int i = 0; i < replaceButtons.size(); i++) {
-            JButton b = replaceButtons.get(i);
-            b.setBounds(900 + (i * 187), 715, 175, 45);
-            b.setFont(new Font("Arial", Font.BOLD, 20));
-            b.setOpaque(true);
-            b.setBorderPainted(true);
-            b.setBorder(new LineBorder(Color.GRAY));
-            b.setBackground(new Color(165, 175, 207));
-            b.setForeground(Color.WHITE);
-            b.setToolTipText("Replace this powerplant");
-            b.setVisible(true);
-            //b.addActionListener(e -> handleReplace(b));
-            add(b);
+        discardedPlantsButton = new JButton("Discarded Powerplants");
+        discardedPlantsButton.setBounds(1439, 27, 200, 32);
+        discardedPlantsButton.setFont(new Font("Arial", Font.BOLD, 13));
+        discardedPlantsButton.setBackground(new Color(80, 80, 80));
+        discardedPlantsButton.setForeground(Color.WHITE);
+        discardedPlantsButton.setOpaque(true);
+        discardedPlantsButton.setBorderPainted(true);
+        discardedPlantsButton.setBorder(new LineBorder(new Color(160, 160, 160)));
+        discardedPlantsButton.setToolTipText("View all discarded power plants");
+        discardedPlantsButton.addActionListener(e -> showDiscardedPlantsDialog());
+        add(discardedPlantsButton);
+    }
+
+    /**
+     * Opens a dialog showing all discarded power plants with their card images.
+     * A "Back to Auction House" button closes the dialog.
+     */
+    private void showDiscardedPlantsDialog() {
+        RoundManager rm = frame.getRoundManager();
+        List<Powerplant> discarded = new ArrayList<>(rm.getDeck().getDiscardedPlants());
+        discarded.sort(Comparator.comparingInt(Powerplant::getNumber));
+
+        JDialog dialog = new JDialog((JFrame) SwingUtilities.getWindowAncestor(this),
+                "Discarded Powerplants", true);
+        dialog.setLayout(new java.awt.BorderLayout(10, 10));
+        dialog.getContentPane().setBackground(new Color(40, 40, 40));
+
+        // --- Title label ---
+        JLabel title = new JLabel("Discarded Power Plants (" + discarded.size() + ")", SwingConstants.CENTER);
+        title.setFont(new Font("Arial", Font.BOLD, 20));
+        title.setForeground(Color.WHITE);
+        title.setBorder(BorderFactory.createEmptyBorder(16, 10, 6, 10));
+        dialog.add(title, java.awt.BorderLayout.NORTH);
+
+        // --- Scrollable grid of plant images ---
+        int cols = 6;
+        int rows = Math.max(1, (int) Math.ceil(discarded.size() / (double) cols));
+        JPanel grid = new JPanel(new java.awt.GridLayout(rows, cols, 10, 10));
+        grid.setBackground(new Color(40, 40, 40));
+        grid.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
+
+        if (discarded.isEmpty()) {
+            JLabel none = new JLabel("No power plants have been discarded yet.", SwingConstants.CENTER);
+            none.setForeground(Color.LIGHT_GRAY);
+            none.setFont(new Font("Arial", Font.ITALIC, 15));
+            grid.setLayout(new java.awt.BorderLayout());
+            grid.add(none, java.awt.BorderLayout.CENTER);
+        } else {
+            for (Powerplant p : discarded) {
+                JPanel card = new JPanel(new java.awt.BorderLayout(4, 4));
+                card.setBackground(new Color(60, 60, 60));
+                card.setBorder(new LineBorder(new Color(100, 100, 100), 1));
+
+                BufferedImage img = getPlantImage(p.getNumber());
+                if (img != null) {
+                    JLabel imgLabel = new JLabel(new ImageIcon(img.getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH)));
+                    imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    card.add(imgLabel, java.awt.BorderLayout.CENTER);
+                } else {
+                    JLabel noImg = new JLabel("#" + p.getNumber(), SwingConstants.CENTER);
+                    noImg.setForeground(Color.LIGHT_GRAY);
+                    noImg.setFont(new Font("Arial", Font.BOLD, 18));
+                    card.add(noImg, java.awt.BorderLayout.CENTER);
+                }
+
+                JLabel numLabel = new JLabel("Plant #" + p.getNumber(), SwingConstants.CENTER);
+                numLabel.setForeground(Color.WHITE);
+                numLabel.setFont(new Font("Arial", Font.BOLD, 12));
+                numLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 4, 0));
+                card.add(numLabel, java.awt.BorderLayout.SOUTH);
+
+                grid.add(card);
+            }
         }
+
+        JScrollPane scroll = new JScrollPane(grid);
+        scroll.setBackground(new Color(40, 40, 40));
+        scroll.getViewport().setBackground(new Color(40, 40, 40));
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        dialog.add(scroll, java.awt.BorderLayout.CENTER);
+
+        // --- Back button ---
+        JButton backButton = new JButton("\u2190 Back to Auction House");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setBackground(new Color(125, 203, 178));
+        backButton.setForeground(Color.WHITE);
+        backButton.setOpaque(true);
+        backButton.setBorderPainted(true);
+        backButton.setBorder(new LineBorder(Color.GRAY));
+        backButton.setFocusPainted(false);
+        backButton.addActionListener(e -> dialog.dispose());
+
+        JPanel south = new JPanel();
+        south.setBackground(new Color(40, 40, 40));
+        south.setBorder(BorderFactory.createEmptyBorder(6, 0, 14, 0));
+        south.add(backButton);
+        dialog.add(south, java.awt.BorderLayout.SOUTH);
+
+        dialog.setSize(760, 520);
+        dialog.setLocationRelativeTo(this);
+        dialog.setVisible(true);
     }
 
     /**
@@ -399,7 +476,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 g.setColor(Color.LIGHT_GRAY);
                 g.setFont(new Font("Arial", Font.BOLD, 13));
                 g.drawString("FUTURE", x + 28, 354+68);
-                g.drawString("#" + p.getNumber(), x + 42, 295);
+                g.drawString("#" + p.getNumber(), x + 42, 437);
                 x += 132;
             }
 
@@ -468,19 +545,19 @@ public class BiddingPanel extends JPanel implements MouseListener {
         }
         return switch (colorName.toLowerCase()) {
             case "red" ->
-                new Color(220, 60, 60);
+                    new Color(220, 60, 60);
             case "blue" ->
-                new Color(60, 100, 200);
+                    new Color(60, 100, 200);
             case "green" ->
-                new Color(60, 160, 80);
+                    new Color(60, 160, 80);
             case "yellow" ->
-                new Color(220, 190, 50);
+                    new Color(220, 190, 50);
             case "purple" ->
-                new Color(130, 60, 180);
+                    new Color(130, 60, 180);
             case "black" ->
-                Color.DARK_GRAY;
+                    Color.DARK_GRAY;
             default ->
-                Color.LIGHT_GRAY;
+                    Color.LIGHT_GRAY;
         };
     }
 

@@ -1,6 +1,7 @@
 package Backend;
 
 import java.util.*;
+// Note: Iterator import no longer needed after removing card #13 special-case logic
 
 public class PowerplantDeck {
     private LinkedList<Powerplant> drawPile;
@@ -12,14 +13,22 @@ public class PowerplantDeck {
     private static final int STEP3_CARD_NUMBER = -1;
     private Powerplant step3Card;
 
-    // Number of cards to randomly remove from the 16+ pile per player count (rulebook)
-    private static final Map<Integer, Integer> RANDOM_REMOVAL_COUNT = new HashMap<>();
+    // Plug (03-15) cards to randomly remove and show as discarded, per player count
+    private static final Map<Integer, Integer> PLUG_REMOVAL_COUNT = new HashMap<>();
+    // Socket (16+) cards to randomly remove and show as discarded, per player count
+    private static final Map<Integer, Integer> SOCKET_REMOVAL_COUNT = new HashMap<>();
     static {
-        RANDOM_REMOVAL_COUNT.put(2, 8);
-        RANDOM_REMOVAL_COUNT.put(3, 8);
-        RANDOM_REMOVAL_COUNT.put(4, 4);
-        RANDOM_REMOVAL_COUNT.put(5, 0);
-        RANDOM_REMOVAL_COUNT.put(6, 0);
+        PLUG_REMOVAL_COUNT.put(2, 1);
+        PLUG_REMOVAL_COUNT.put(3, 2);
+        PLUG_REMOVAL_COUNT.put(4, 1);
+        PLUG_REMOVAL_COUNT.put(5, 0);
+        PLUG_REMOVAL_COUNT.put(6, 0);
+
+        SOCKET_REMOVAL_COUNT.put(2, 5);
+        SOCKET_REMOVAL_COUNT.put(3, 6);
+        SOCKET_REMOVAL_COUNT.put(4, 3);
+        SOCKET_REMOVAL_COUNT.put(5, 0);
+        SOCKET_REMOVAL_COUNT.put(6, 0);
     }
 
     public PowerplantDeck() {
@@ -46,15 +55,15 @@ public class PowerplantDeck {
     /**
      * Executes the complete Power Grid deck setup per the rulebook:
      *
-     * 1. Separate cards 03-15 from 16+.
-     * 2. Remove card #13 (stays out for 2-5 players; kept in for 6 players).
-     * 3. Shuffle cards 03-12, 14-15. Draw 8, sort ascending.
-     *    Lowest 4 -> currentMarket, upper 4 -> futureMarket.
-     *    Remaining plug-back card(s) set aside.
-     * 4. Remove cards from 16+ pile randomly based on player count.
-     * 5. Combine remaining 16+ cards + leftover plug-backs and shuffle.
-     * 6. Place Step 3 card at bottom of drawPile.
-     * 7. Place set-aside plug-back card on top of drawPile.
+     * 1. Randomly draw 8 cards from the full 03-15 set.
+     *    Sort ascending: lowest 4 -> currentMarket, upper 4 -> futureMarket.
+     * 2. Randomly pick 1 of the remaining 03-15 cards for the top of the draw pile.
+     *    Show PLUG_REMOVAL_COUNT[playerCount] of the rest as discarded (face-up).
+     *    Any remaining leftover plug cards also go on top of the draw pile — nothing is silently dropped.
+     * 3. Remove SOCKET_REMOVAL_COUNT[playerCount] cards from the 16+ pile and show as discarded.
+     * 4. Shuffle the remaining 16+ cards and build the draw pile.
+     * 5. Place the Step 3 card at the very bottom of the draw pile.
+     * 6. Place any extra plug cards, then the chosen plug card, on top of the draw pile.
      */
     public void setup(int playerCount) {
         currentMarket.clear();
@@ -66,22 +75,7 @@ public class PowerplantDeck {
         List<Powerplant> startingCards = PowerplantData.getStartingCards(); // 03-15
         List<Powerplant> drawPileCards = PowerplantData.getDrawPileCards(); // 16+
 
-        // Remove card #13 (ecological, taken out unless 6 players)
-        Powerplant card13 = null;
-        Iterator<Powerplant> it = startingCards.iterator();
-        while (it.hasNext()) {
-            Powerplant p = it.next();
-            if (p.getNumber() == 13) {
-                card13 = p;
-                it.remove();
-                break;
-            }
-        }
-        if (playerCount == 6 && card13 != null) {
-            startingCards.add(card13); // 6-player keeps it
-        }
-
-        // Shuffle 03-15 (minus #13), draw 8
+        // Randomly draw 8 from 03-15, sort, split into markets
         Collections.shuffle(startingCards);
         List<Powerplant> initialEight = new ArrayList<>();
         List<Powerplant> leftoverStarting = new ArrayList<>();
@@ -90,36 +84,45 @@ public class PowerplantDeck {
             else       leftoverStarting.add(startingCards.get(i));
         }
 
-        // Sort and split into markets
         Collections.sort(initialEight);
         for (int i = 0; i < initialEight.size(); i++) {
             if (i < 4) currentMarket.add(initialEight.get(i));
             else       futureMarket.add(initialEight.get(i));
         }
 
-        // Set aside one plug-back card (goes on top of draw pile later)
-        Powerplant setAsidePlugBack = leftoverStarting.isEmpty() ? null : leftoverStarting.remove(0);
+        // Randomly pick 1 leftover 03-15 card for the top of the draw pile.
+        // Then discard the rulebook-specified number of plug cards (shown face-up).
+        // Any remaining leftover plug cards also go on top of the draw pile — nothing is silently dropped.
+        Collections.shuffle(leftoverStarting);
+        Powerplant topOfDeck = leftoverStarting.isEmpty() ? null : leftoverStarting.remove(0);
+        int plugRemoveCount = PLUG_REMOVAL_COUNT.getOrDefault(playerCount, 0);
+        for (int i = 0; i < plugRemoveCount && !leftoverStarting.isEmpty(); i++) {
+            discardedPlants.add(leftoverStarting.remove(0));
+        }
+        // All remaining leftover plug cards go on top of the draw pile (will be placed after step3 card is added).
 
-        // Remove cards from 16+ pile based on player count
-        int removeCount = RANDOM_REMOVAL_COUNT.getOrDefault(playerCount, 0);
+        // Remove socket (16+) cards based on player count; always track them as discarded.
+        int socketRemoveCount = SOCKET_REMOVAL_COUNT.getOrDefault(playerCount, 0);
         Collections.shuffle(drawPileCards);
-        for (int i = 0; i < removeCount && !drawPileCards.isEmpty(); i++) {
+        for (int i = 0; i < socketRemoveCount && !drawPileCards.isEmpty(); i++) {
             discardedPlants.add(drawPileCards.remove(drawPileCards.size() - 1));
         }
 
-        // Combine 16+ remainder with any extra plug-back leftovers, shuffle
-        List<Powerplant> combined = new ArrayList<>();
-        combined.addAll(drawPileCards);
-        combined.addAll(leftoverStarting);
-        Collections.shuffle(combined);
-        drawPile.addAll(combined);
+        // Shuffle remaining 16+ cards into the draw pile
+        Collections.shuffle(drawPileCards);
+        drawPile.addAll(drawPileCards);
 
         // Step 3 card at the very bottom
         drawPile.addLast(step3Card);
 
-        // Set-aside plug-back card on top
-        if (setAsidePlugBack != null) {
-            drawPile.addFirst(setAsidePlugBack);
+        // Any leftover plug cards that weren't discarded also go on top of the draw pile
+        for (Powerplant p : leftoverStarting) {
+            drawPile.addFirst(p);
+        }
+
+        // The single randomly chosen 03-15 card goes on top of everything
+        if (topOfDeck != null) {
+            drawPile.addFirst(topOfDeck);
         }
     }
 
