@@ -135,11 +135,14 @@ public class BuildingPanel extends JPanel implements MouseListener {
             Gameboard board  = rm.getBoard();
             int step         = rm.getCurrentStep();
 
-            // after — sorted cheapest first
             List<String> affordable = new ArrayList<>();
             for (String cityName : Constants.CityCoordinates.coordinates.keySet()) {
                 City city = board.getCityByName(cityName);
                 if (city == null) continue;
+
+                // FIX: Skip cities that are not in the active playing zone
+                if (!rm.getBoard().getActiveCities().contains(city)) continue;
+
                 if (!city.hasOpenSlot(step)) continue;
                 if (city.isOccupiedBy(player)) continue;
                 if (calculateCostFor(player, city) >= 0) {

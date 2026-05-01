@@ -332,16 +332,21 @@ public class RoundManager {
      * Returns total cost paid, or -1 on failure.
      */
     public int buildCity(Player player, City targetCity) {
+        // FIX: Ensure the city is in one of the 3 selected regions
+        if (!board.getActiveCities().contains(targetCity)) return -1;
+
         if (player.getOwnedCities().isEmpty()) {
             // first city: flat 10, no connection cost
             if (!player.canAfford(10)) return -1;
             if (!targetCity.hasOpenSlot(currentStep)) return -1;
             if (targetCity.isOccupiedBy(player)) return -1;
+
             player.spendMoney(10);
             targetCity.addOccupant(player, currentStep);
             player.addCity(targetCity);
             return 10;
         }
+
         // subsequent cities: connection + slot cost
         int connectionCost = board.calculateConnectionCost(player.getOwnedCities(), targetCity);
         if (connectionCost == Integer.MAX_VALUE) return -1; // unreachable
