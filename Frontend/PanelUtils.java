@@ -1,7 +1,6 @@
 package Frontend;
 
 import Backend.*;
-
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
@@ -109,6 +108,8 @@ public final class PanelUtils {
 
         g.setColor(parseColor(player.getColor()));
         g.fillOval(1460, 695, 120, 120);
+        g.setColor(Color.GRAY);
+        g.drawOval(1460, 695, 120, 120);
 
         g.setFont(new Font("Arial", Font.BOLD, 22));
         g.setColor(Color.WHITE);
