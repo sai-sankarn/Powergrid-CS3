@@ -42,7 +42,7 @@ public class BuildingPanel extends JPanel implements MouseListener {
         setFocusable(true);
 
         try {
-            background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            background = ImageCache.getBackground();
         } catch (Exception e) {
             System.err.println("BuildingPanel: could not load background – " + e.getMessage());
         }
@@ -303,20 +303,10 @@ public class BuildingPanel extends JPanel implements MouseListener {
     // Helpers
     // -----------------------------------------------------------------------
 
-    /**
-     * Loads a powerplant image by card number (e.g. 3 → /Images/powerplant-3.png).
-     * Caches results so each image is only loaded once.
-     */
+    /** @deprecated panels no longer load images directly; use ImageCache. */
+    @SuppressWarnings("unused")
     private BufferedImage getPlantImage(int number) {
-        if (plantImageCache.containsKey(number)) return plantImageCache.get(number);
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(getClass().getResource("/Images/powerplant-" + number + ".png"));
-        } catch (Exception e) {
-            System.err.println("BuildingPanel: no image for powerplant-" + number);
-        }
-        plantImageCache.put(number, img); // store null so we don't retry
-        return img;
+        return ImageCache.getPlant(number);
     }
 
     /** Converts a player colour name to an AWT Color. */

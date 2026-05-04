@@ -6,7 +6,6 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.util.*;
 import java.util.List;
-import javax.imageio.ImageIO;
 
 /**
  * Static helpers shared by every game panel.
@@ -123,19 +122,87 @@ public final class PanelUtils {
                                    Map<Integer, BufferedImage> plantImageCache) {
         if (player == null) return;
         List<Powerplant> plants = new ArrayList<>(player.getPowerplants());
+
+        // Resource colours — identical to paintInventory so the UI is consistent.
+        // Order must stay in sync with RES_TYPES below.
+        final ResourceType[] RES_TYPES = {
+                ResourceType.COAL, ResourceType.OIL,
+                ResourceType.TRASH, ResourceType.URANIUM
+        };
+        final Color[] RES_COLOURS = {
+                new Color(92, 50, 5),  // coal    — brown
+                Color.BLACK,           // oil     — black
+                Color.YELLOW,          // trash   — yellow
+                Color.RED              // uranium — red
+        };
+
+        // Token overlay layout constants.
+        final int CARD_W = 180;
+        final int CARD_H = 180;
+        final int CARD_Y = 770;
+        final int SQ     = 13;  // swatch square side length (px)
+        final int PAD    = 4;   // gap from card edge to swatch
+        final int ROW_H  = SQ + 3; // vertical pitch between resource rows
+
         int px = 900;
         for (int i = 0; i < Math.min(plants.size(), 3); i++) {
-            int plantNum = plants.get(i).getNumber();
+            Powerplant plant = plants.get(i);
+            int plantNum     = plant.getNumber();
+
+            // ── Draw the plant image (or a placeholder rectangle) ───────────
             BufferedImage img = getPlantImage(plantNum, plantImageCache);
             if (img != null) {
-                g.drawImage(img, px, 770, 180, 180, null);
+                g.drawImage(img, px, CARD_Y, CARD_W, CARD_H, null);
             } else {
                 g.setColor(new Color(60, 60, 80));
-                g.fillRect(px, 770, 180, 180);
+                g.fillRect(px, CARD_Y, CARD_W, CARD_H);
                 g.setColor(Color.WHITE);
                 g.setFont(new Font("Arial", Font.BOLD, 28));
-                g.drawString("#" + plantNum, px + 55, 870);
+                g.drawString("#" + plantNum, px + 55, CARD_Y + 100);
             }
+
+            // ── Overlay stored-resource tokens in the bottom-right corner ───
+            // Rows stack upward; only resource types with amount > 0 are shown.
+            // We iterate the type array in reverse so that the last type sits in
+            // the bottom-most row (closest to the card edge), keeping the visual
+            // order COAL → OIL → TRASH → URANIUM top-to-bottom.
+            g.setFont(new Font("Arial", Font.BOLD, 12));
+            Graphics2D g2     = (Graphics2D) g;
+            Composite  origC  = g2.getComposite();
+
+            int rowIndex = 0; // 0 = bottom row, increments upward
+            for (int r = RES_TYPES.length - 1; r >= 0; r--) {
+                int amount = plant.getStoredAmount(RES_TYPES[r]);
+                if (amount == 0) continue;
+
+                int rowY = CARD_Y + CARD_H - PAD - SQ - (rowIndex * ROW_H);
+                int sqX  = px + CARD_W - PAD - SQ;
+
+                // Semi-transparent dark backing strip so text/swatch are legible
+                // over any artwork colour.
+                g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.55f));
+                g2.setColor(Color.BLACK);
+                g2.fillRect(px + CARD_W - PAD - SQ - 26, rowY - 1, SQ + 28, SQ + 2);
+                g2.setComposite(origC);
+
+                // Coloured resource swatch.
+                g.setColor(RES_COLOURS[r]);
+                g.fillRect(sqX, rowY, SQ, SQ);
+
+                // Thin border around the swatch for contrast against dark art.
+                g2.setColor(new Color(30, 30, 30));
+                g2.setStroke(new java.awt.BasicStroke(1));
+                g2.drawRect(sqX, rowY, SQ, SQ);
+
+                // "×N" count label immediately to the left of the swatch.
+                g.setColor(Color.WHITE);
+                String label  = "\u00d7" + amount; // ×N
+                FontMetrics fm = g.getFontMetrics();
+                g.drawString(label, sqX - fm.stringWidth(label) - 2, rowY + SQ - 1);
+
+                rowIndex++;
+            }
+
             px += 185;
         }
     }
@@ -247,16 +314,13 @@ public final class PanelUtils {
 
     // ── Image loading ─────────────────────────────────────────────────────────
 
+    /**
+     * Returns the plant image from the shared {@link ImageCache}.
+     * The {@code cache} parameter is kept for API compatibility but is ignored —
+     * all caching is handled centrally by ImageCache so no panel needs its own map.
+     */
     public static BufferedImage getPlantImage(int number, Map<Integer, BufferedImage> cache) {
-        if (cache.containsKey(number)) return cache.get(number);
-        BufferedImage img = null;
-        try {
-            img = ImageIO.read(PanelUtils.class.getResource("/Images/powerplant-" + number + ".png"));
-        } catch (Exception e) {
-            System.err.println("PanelUtils: no image for powerplant-" + number);
-        }
-        cache.put(number, img);
-        return img;
+        return ImageCache.getPlant(number);
     }
 
     // ── Colour helper ─────────────────────────────────────────────────────────

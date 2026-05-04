@@ -21,6 +21,7 @@ public class PowergridFrame extends JFrame {
     private BuildingPanel     buildingPanel;
     private BureaucracyPanel  bureaucracyPanel;
     private PlayerOrderPanel  playerOrderPanel;
+    private ResultsPanel      resultsPanel;
 
     public PowergridFrame(String name) {
         super(name);
@@ -50,6 +51,7 @@ public class PowergridFrame extends JFrame {
         buildingPanel    = new BuildingPanel(this);
         bureaucracyPanel = new BureaucracyPanel(this);
         playerOrderPanel = new PlayerOrderPanel(this);
+        resultsPanel = new ResultsPanel(this);
 
         mainContainer.add(new StartPanel(this),  "START");
         mainContainer.add(new SetupPanel(this),  "SETUP");
@@ -58,6 +60,7 @@ public class PowergridFrame extends JFrame {
         mainContainer.add(resourcePanel,         "RESOURCE");
         mainContainer.add(buildingPanel,         "BUILDING");
         mainContainer.add(bureaucracyPanel,      "BUREAUCRACY");
+        mainContainer.add(resultsPanel, "RESULTS");
 
         add(mainContainer);
         setVisible(true);

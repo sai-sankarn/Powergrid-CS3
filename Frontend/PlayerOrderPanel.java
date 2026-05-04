@@ -26,7 +26,7 @@ public class PlayerOrderPanel extends JPanel implements MouseListener {
         rm = frame.getRoundManager();
 
         try {
-            background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            background = ImageCache.getBackground();
         } catch (Exception e) {
             System.err.println("Could not load background image.");
         }

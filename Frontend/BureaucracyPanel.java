@@ -14,7 +14,6 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
     // ── Images ──────────────────────────────────────────────────────────────
     private BufferedImage background;
-    // FIXED: Use a cache map to store images by their powerplant number
     private final Map<Integer, BufferedImage> plantImageCache = new HashMap<>();
 
     // ── References ──────────────────────────────────────────────────────────
@@ -22,10 +21,26 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     private final RoundManager   roundManager;
 
     // ── Per-player state ─────────────────────────────────────────────────────
-    private Player         currentPlayer;
+    private Player           currentPlayer;
     private List<Powerplant> currentPlants;
-    private boolean[]      plantSelected;
-    private int            bureauPlayerIndex;
+    private boolean[]        plantSelected;
+    private int              bureauPlayerIndex;
+
+    /**
+     * True when the victory threshold was already crossed before this Bureaucracy
+     * phase started (i.e., a player built enough cities in Phase 4).  All players
+     * still power their plants normally; after the last player clicks NEXT, the
+     * winner is declared instead of starting a new round.
+     */
+    private boolean isFinalRound = false;
+
+    /**
+     * Tracks how many cities each player actually powered this Bureaucracy phase.
+     * Used to determine the winner in the final round, because plant.fire() consumes
+     * resources before determineWinner() runs — so getActualPowerableCount() would
+     * return 0 for everyone after firing.
+     */
+    private Map<Player, Integer> citiesPoweredMap = new HashMap<>();
 
     // ── UI Components ────────────────────────────────────────────────────────
     private JLabel   statusLabel;
@@ -51,8 +66,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
     private void loadImages() {
         try {
-            background = ImageIO.read(getClass().getResource("/Images/background.png"));
-            // Individual plant images are now loaded on-demand via PanelUtils
+            background = ImageCache.getBackground();
         } catch (Exception e) {
             System.out.println("BureaucracyPanel: image load error — " + e.getMessage());
         }
@@ -123,11 +137,33 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
     private static final Color BTN_SELECTED   = new Color(90,  175, 90);
     private static final Color BTN_NO_FUEL    = new Color(140, 140, 140);
 
+    // ── Phase entry-point ────────────────────────────────────────────────────
+
+    /**
+     * Called by PowergridFrame whenever the BUREAUCRACY screen becomes visible
+     * (i.e., after Phase 4 – Building – has just completed).
+     *
+     * Step / victory checks happen HERE, before any powering occurs:
+     *   1. checkStepTransition() — may advance to Step 2 or activate Step 3.
+     *   2. checkVictory()       — if the city threshold was reached in Phase 4,
+     *      this is the "final round"; players still power normally, but afterward
+     *      the winner is declared instead of starting a new round.
+     */
     public void startBureaucracyPhase() {
         bureauPlayerIndex = 0;
+        citiesPoweredMap  = new HashMap<>();
+
+        // Step transitions are evaluated at the start of Bureaucracy (after Phase 4).
         roundManager.checkStepTransition();
+
+        // Determine now whether this is the last round so we can show the correct
+        // ending after all players have powered their plants.
+        isFinalRound = roundManager.checkVictory();
+
         loadCurrentPlayer();
     }
+
+    // ── Per-player loading ───────────────────────────────────────────────────
 
     private void loadCurrentPlayer() {
         List<Player> order = roundManager.getTurnOrder();
@@ -160,6 +196,8 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         repaint();
     }
 
+    // ── Button handlers ──────────────────────────────────────────────────────
+
     private void handlePower(int idx) {
         if (idx >= currentPlants.size()) return;
         Powerplant plant = currentPlants.get(idx);
@@ -167,6 +205,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
 
         plantSelected[idx] = !plantSelected[idx];
         powerButtons[idx].setBackground(plantSelected[idx] ? BTN_SELECTED : BTN_UNSELECTED);
+        repaint();
     }
 
     private void handleDone() {
@@ -183,20 +222,41 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             }
         }
 
-        int cityCount = currentPlayer.getCityCount();
+        int cityCount     = currentPlayer.getCityCount();
         int citiesPowered = Math.min(totalOutput, cityCount);
-        int payment = roundManager.getPayment(citiesPowered);
+        int payment       = roundManager.getPayment(citiesPowered);
         currentPlayer.addMoney(payment);
 
-        resultLabel.setText("Powered " + citiesPowered + " / " + cityCount + " cities  →  +"
-                + payment + " Elektro  |  Total: $" + currentPlayer.getMoney());
+        // Store the actual powered count so the winner screen can use it.
+        // (After fire() the resources are consumed, so getActualPowerableCount()
+        // would return 0 — we must record the value now.)
+        citiesPoweredMap.put(currentPlayer, citiesPowered);
+
+        resultLabel.setText("Powered " + citiesPowered + " / " + cityCount
+                + " cities  →  +" + payment + " Elektro  |  Total: $" + currentPlayer.getMoney());
         repaint();
         nextPlayer.setVisible(true);
     }
 
+    // ── End-of-phase logic ───────────────────────────────────────────────────
+
+    /**
+     * Called after every player has powered their plants.
+     *
+     * If this was the final round (victory threshold crossed during Phase 4),
+     * compute the final rankings via RoundManager and hand off to the Results
+     * screen.  Otherwise run the normal end-of-round housekeeping:
+     *   • Restock the resource market.
+     *   • Update the power-plant market (discard highest in Steps 1-2, remove
+     *     lowest in Step 3).
+     *   • Advance to Phase 1 of the next round.
+     */
     private void finishBureaucracy() {
-        if (roundManager.checkVictory()) {
-            showWinnerDialog();
+        if (isFinalRound) {
+            // Let RoundManager compute the winner and build the GameResult object.
+            roundManager.determineWinner(citiesPoweredMap);
+            // Hand off to the Results screen — no dialog, no blocking call.
+            frame.showScreen("RESULTS");
             return;
         }
 
@@ -205,6 +265,9 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
                 roundManager.getCurrentStep()
         );
 
+        // Power-plant market update:
+        //   Steps 1 & 2: bury the highest future-market card above the Step 3 card.
+        //   Step 3:      permanently remove the lowest-numbered plant.
         if (roundManager.getCurrentStep() < 3) {
             roundManager.getDeck().discardHighestPlant();
         } else {
@@ -216,26 +279,7 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         frame.showScreen("ORDER");
     }
 
-    private void showWinnerDialog() {
-        List<Player> all = roundManager.getPlayers();
-        Player winner = null;
-        int bestPowered = -1, bestMoney = -1;
-
-        for (Player p : all) {
-            int powered = Math.min(p.getActualPowerableCount(), p.getCityCount());
-            if (powered > bestPowered || (powered == bestPowered && p.getMoney() > bestMoney)) {
-                winner   = p;
-                bestPowered = powered;
-                bestMoney   = p.getMoney();
-            }
-        }
-
-        String msg = winner != null
-                ? "🏆  " + winner.getName() + " wins!\n" + "Cities powered: " + bestPowered + "  |  Elektro: $" + bestMoney
-                : "No winner could be determined.";
-
-        JOptionPane.showMessageDialog(this, msg, "Game Over — Powergrid", JOptionPane.INFORMATION_MESSAGE);
-    }
+    // ── Painting ─────────────────────────────────────────────────────────────
 
     @Override
     public void paintComponent(Graphics g) {
@@ -247,13 +291,21 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
         g.drawString("STEP " + roundManager.getCurrentStep() + ", PHASE 5:", 1050, 49);
         g.drawString("BUREAUCRACY", 1070, 90);
 
+        // Warn players if this is the final round.
+        if (isFinalRound) {
+            g.setColor(new Color(255, 80, 80));
+            g.setFont(new Font("Arial", Font.BOLD, 22));
+            g.drawString("⚠  FINAL ROUND — winner declared after all players power!", 900, 115);
+        }
+
         g.setFont(new Font("Arial", Font.PLAIN, 30));
+        g.setColor(Color.WHITE);
         g.drawString("Select plants to fire, then click DONE", 900, 395);
 
         // Always paint the cities/tracker on the map
         PanelUtils.paintCities(g, roundManager);
-        PanelUtils.paintTurnOrderIndicators(g,roundManager);
-        PanelUtils.paintResourceIcons(g,roundManager.getResourceMarket(), frame.getRoundManager());
+        PanelUtils.paintTurnOrderIndicators(g, roundManager);
+        PanelUtils.paintResourceIcons(g, roundManager.getResourceMarket(), frame.getRoundManager());
 
         if (currentPlayer != null) paintHand(g);
     }
@@ -277,7 +329,6 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             int x = 900 + (i * 187);
             Powerplant p = currentPlants.get(i);
 
-            // FIXED: Fetch image by actual plant number using PanelUtils cache
             BufferedImage img = PanelUtils.getPlantImage(p.getNumber(), plantImageCache);
             if (img != null) {
                 g.drawImage(img, x, 770, 180, 180, null);
@@ -303,13 +354,14 @@ public class BureaucracyPanel extends JPanel implements MouseListener {
             g.drawString("Type: " + typeStr, x + 6, 842);
         }
 
-        // Use the utility for inventory counts
         PanelUtils.paintInventory(g, currentPlayer);
     }
 
-    @Override public void mouseClicked(MouseEvent e) { System.out.println("(" + e.getX() + ", " + e.getY() + ")"); }
-    @Override public void mousePressed(MouseEvent e) {}
+    // ── MouseListener ────────────────────────────────────────────────────────
+
+    @Override public void mouseClicked(MouseEvent e)  { System.out.println("(" + e.getX() + ", " + e.getY() + ")"); }
+    @Override public void mousePressed(MouseEvent e)  {}
     @Override public void mouseReleased(MouseEvent e) {}
-    @Override public void mouseEntered(MouseEvent e) {}
-    @Override public void mouseExited(MouseEvent e) {}
+    @Override public void mouseEntered(MouseEvent e)  {}
+    @Override public void mouseExited(MouseEvent e)   {}
 }

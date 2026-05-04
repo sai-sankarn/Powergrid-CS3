@@ -8,7 +8,6 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.util.*;
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.LineBorder;
 
@@ -24,8 +23,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
     private JButton passButton;
     private JButton discardedPlantsButton;
 
-    // Image Cache to load powerplant images dynamically
-    private Map<Integer, BufferedImage> plantImages = new HashMap<>();
+    // plantImages is kept for API compatibility with PanelUtils.paintHand;
+    // actual loading is handled by the shared ImageCache.
+    private final Map<Integer, BufferedImage> plantImages = new HashMap<>();
 
     // Auction State Tracking
     private boolean isAuctionActive = false;
@@ -38,7 +38,7 @@ public class BiddingPanel extends JPanel implements MouseListener {
         setLayout(null);
 
         try {
-            background = ImageIO.read(getClass().getResource("/Images/background.png"));
+            background = ImageCache.getBackground();
         } catch (Exception e) {
             System.err.println("Could not load background image.");
         }
@@ -140,9 +140,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 card.setBackground(new Color(60, 60, 60));
                 card.setBorder(new LineBorder(new Color(100, 100, 100), 1));
 
-                BufferedImage img = getPlantImage(p.getNumber());
-                if (img != null) {
-                    JLabel imgLabel = new JLabel(new ImageIcon(img.getScaledInstance(100, 100, java.awt.Image.SCALE_SMOOTH)));
+                BufferedImage scaledImg = ImageCache.getPlantScaled(p.getNumber(), 100, 100);
+                if (scaledImg != null) {
+                    JLabel imgLabel = new JLabel(new ImageIcon(scaledImg));
                     imgLabel.setHorizontalAlignment(SwingConstants.CENTER);
                     card.add(imgLabel, java.awt.BorderLayout.CENTER);
                 } else {
@@ -406,20 +406,9 @@ public class BiddingPanel extends JPanel implements MouseListener {
         repaint();
     }
 
-    /**
-     * Helper to load and cache plant images on demand
-     */
+    /** Returns the plant image from the shared application-wide cache. */
     private BufferedImage getPlantImage(int plantNumber) {
-        if (!plantImages.containsKey(plantNumber)) {
-            try {
-                BufferedImage img = ImageIO.read(BiddingPanel.class.getResource("/Images/powerplant-" + plantNumber + ".png"));
-                plantImages.put(plantNumber, img);
-            } catch (Exception e) {
-                System.err.println("Missing image for plant: " + plantNumber);
-                return null;
-            }
-        }
-        return plantImages.get(plantNumber);
+        return ImageCache.getPlant(plantNumber);
     }
 
     @Override
@@ -446,6 +435,12 @@ public class BiddingPanel extends JPanel implements MouseListener {
 
             if (currentStep < 3) {
                 // --- STEP 1 & 2: 4 CURRENT (TOP), 4 FUTURE (BOTTOM) ---
+
+                if (rm.isStep3CardPending()) {
+                    g.setFont(new Font("Arial", Font.BOLD, 16));
+                    g.setColor(new Color(255, 160, 50));
+                    g.drawString("⚠ Step 3 card drawn — Step 3 activates after the building phase!", 963, 165);
+                }
 
                 // Draw Current Market (Top Row)
                 int x = 918;
@@ -499,6 +494,10 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 g.setFont(new Font("Arial", Font.BOLD, 18));
                 g.setColor(Color.YELLOW);
                 g.drawString("STEP 3 ACTIVE: ALL PLANTS AVAILABLE", 963, 140);
+                if (rm.isStep3CardPending()) {
+                    g.setColor(new Color(255, 160, 50));
+                    g.drawString("(Step 3 card drawn — activates after building phase)", 963, 165);
+                }
             }
 
         } else {
@@ -541,6 +540,8 @@ public class BiddingPanel extends JPanel implements MouseListener {
         PanelUtils.paintHand(g,player,plantImages);
         PanelUtils.paintCities(g, frame.getRoundManager());
         PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());
+
+        rm.getDeck().printState();
     }
 
     private void refreshDropdown() {

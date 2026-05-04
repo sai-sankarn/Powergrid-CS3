@@ -16,6 +16,14 @@ public class RoundManager {
     private Player currentHighestBidder;
     private int currentHighBid;
 
+    /**
+     * True when the Step 3 card has been drawn during the auction phase but Step 3
+     * has not yet officially started.  Per the rulebook the card is treated as the
+     * highest-valued plant on the market until the end of the auction; Step 3 then
+     * begins after Phase 4 (building) is completed.
+     */
+    private boolean step3CardPending = false;
+
     // Win thresholds: minimum cities to trigger end-game check, keyed by player count
     private static final Map<Integer, Integer> WIN_THRESHOLDS;
     // Step 2 unlock thresholds, keyed by player count
@@ -39,10 +47,57 @@ public class RoundManager {
 
     // Payment table from rulebook: index = number of cities powered
     private static final int[] PAYMENT_TABLE = {
-        10, 22, 33, 44, 54, 64, 73, 82, 90, 98,
-        105, 112, 118, 124, 129, 134, 138, 142, 145, 148,
-        150  // 20 cities = 150
+            10, 22, 33, 44, 54, 64, 73, 82, 90, 98,
+            105, 112, 118, 124, 129, 134, 138, 142, 145, 148,
+            150  // 20 cities = 150
     };
+
+    // -----------------------------------------------------------------------
+    // GameResult — immutable snapshot of the final game state
+    // -----------------------------------------------------------------------
+
+    /**
+     * Snapshot of all player stats at the end of the game, plus the determined winner.
+     * Built once by determineWinner(Map) and retrieved by the UI via getGameResult().
+     */
+    public static class GameResult {
+
+        /** Per-player final stats. */
+        public static class PlayerResult {
+            public final Player player;
+            public final int citiesPowered;  // cities actually powered in the final round
+            public final int money;          // Elektro at end of game
+            public final int citiesOwned;    // cities on the board
+            public final boolean isWinner;
+
+            public PlayerResult(Player player, int citiesPowered,
+                                int money, int citiesOwned, boolean isWinner) {
+                this.player        = player;
+                this.citiesPowered = citiesPowered;
+                this.money         = money;
+                this.citiesOwned   = citiesOwned;
+                this.isWinner      = isWinner;
+            }
+        }
+
+        public final Player winner;
+        public final List<PlayerResult> rankedResults; // sorted: best → worst
+
+        public GameResult(Player winner, List<PlayerResult> rankedResults) {
+            this.winner        = winner;
+            this.rankedResults = Collections.unmodifiableList(rankedResults);
+        }
+    }
+
+    /** Set at the end of the final Bureaucracy phase; null until then. */
+    private GameResult gameResult = null;
+
+    /** Returns the final game result, or null if the game is not yet over. */
+    public GameResult getGameResult() { return gameResult; }
+
+    // -----------------------------------------------------------------------
+    // Constructor
+    // -----------------------------------------------------------------------
 
     public RoundManager(List<Player> players, Gameboard board,
                         ResourceMarket resourceMarket, PowerplantDeck deck) {
@@ -73,6 +128,13 @@ public class RoundManager {
     public Powerplant getCurrentAuctionPlant()  { return currentAuctionPlant; }
     public Player getCurrentHighestBidder()     { return currentHighestBidder; }
     public int getCurrentHighBid()              { return currentHighBid; }
+
+    /**
+     * Returns true if the Step 3 card was drawn during the auction phase but Step 3
+     * has not yet officially activated (i.e., it is being held as the "highest plant"
+     * in the market for the remainder of the auction).
+     */
+    public boolean isStep3CardPending()         { return step3CardPending; }
 
     // --- Setters ---
 
@@ -177,8 +239,6 @@ public class RoundManager {
     /**
      * AUCTION phase entry point.
      * Resets per-round flags and sets currentPlayerIndex to 0.
-     * The actual bidding loop is driven by the frontend/UI calling
-     * startAuction(), placeBid(), and passBid() below.
      */
     public void handleAuctionPhase() {
         resetAuctionFlags();
@@ -212,8 +272,22 @@ public class RoundManager {
 
     /**
      * Resolves the current auction: charges the winner, gives them the plant,
-     * draws a replacement card, and handles Step 3 trigger if needed.
+     * draws a replacement card, and handles the Step 3 card if drawn.
      * Returns the winning player.
+     */
+    /**
+     * Resolves the current auction: charges the winner, removes the plant from
+     * the market (which triggers an automatic rebalance inside PowerplantDeck),
+     * checks for the Step 3 card, removes obsolete plants, and gives the plant
+     * to the winner.
+     *
+     * NOTE: we no longer call deck.draw() or deck.updateMarket() manually here.
+     * PowerplantDeck.removeFromCurrentMarket() already calls rebalanceMarkets()
+     * internally, which fills the gap via drawSafe() — doing so again would
+     * double-draw from the pile and corrupt the market.
+     *
+     * Step 3 detection is delegated to the deck: after rebalancing, if drawSafe()
+     * encountered the Step 3 card it sets an internal flag that we check here.
      */
     public Player resolveAuction() {
         if (currentHighestBidder == null || currentAuctionPlant == null) return null;
@@ -222,36 +296,27 @@ public class RoundManager {
         Powerplant plant = currentAuctionPlant;
 
         winner.spendMoney(currentHighBid);
+
+        // removeFromCurrentMarket triggers rebalanceMarkets() inside the deck,
+        // which fills the market gap via drawSafe(). If drawSafe() hit the Step 3
+        // card during that refill, the deck records it and we pick it up below.
         deck.removeFromCurrentMarket(plant);
 
-        // draw replacement — check for Step 3 card
-        Powerplant drawn = deck.draw();
-        if (drawn != null && deck.isStep3Card(drawn)) {
+        // Check whether rebalancing just encountered the Step 3 card.
+        if (deck.wasStep3CardEncountered()) {
             handleStep3Trigger();
-        } else if (drawn != null) {
-            // add to future market then resort
-            if (!deck.isStepThreeActive()) {
-                // goes into future market; updateMarket will slot it correctly
-            }
-            deck.updateMarket();
-        } else {
-            deck.updateMarket();
         }
 
-        // remove any plants whose number <= leading player city count
-        int leadingCities = getLeadingCityCount();
-        deck.removeObsoletePlants(leadingCities);
+        // Remove any plants the leading player has already surpassed.
+        deck.removeObsoletePlants(getLeadingCityCount());
 
-        // give the plant to the winner
         boolean added = winner.addPowerplant(plant);
         if (!added) {
-            // player already has 3 — they must discard one (UI prompts this)
-            // for now, return without adding; UI must call resolvePlantDiscard()
+            // Player already has 3 plants — UI must call resolvePlantDiscard().
         }
 
         winner.setBoughtThisRound(true);
 
-        // reset auction state
         currentAuctionPlant = null;
         currentHighestBidder = null;
         currentHighBid = 0;
@@ -264,11 +329,9 @@ public class RoundManager {
      * Handles resource redistribution and returns leftover tokens (caller returns to supply).
      */
     public Map<ResourceType, Integer> resolvePlantDiscard(Player player, Powerplant toDiscard,
-                                                           Powerplant newPlant) {
+                                                          Powerplant newPlant) {
         Map<ResourceType, Integer> leftover = player.discardPowerplant(toDiscard);
-        // if the discarded plant IS the newly bought plant, it is removed from the game entirely
         if (toDiscard.equals(newPlant)) {
-            // already removed by discardPowerplant; don't re-add newPlant
             return leftover;
         }
         player.addPowerplant(newPlant);
@@ -280,7 +343,6 @@ public class RoundManager {
      */
     public void autoResolveLast(Player lastPlayer) {
         if (lastPlayer.isBoughtThisRound() || lastPlayer.isPassedAuction()) return;
-        // find cheapest plant in market
         Powerplant cheapest = deck.getCurrentMarket().peek();
         if (cheapest == null) return;
         if (!lastPlayer.canAfford(cheapest.getNumber())) return;
@@ -294,33 +356,73 @@ public class RoundManager {
     /**
      * BUYING phase.
      * Iterates through turnOrder in reverse. Actual resource selection is UI-driven.
-     * This method validates and executes a single resource purchase.
      */
     public void handleBuyResourcesPhase() {
         currentPlayerIndex = turnOrder.size() - 1;
     }
 
     /**
-     * Executes a resource purchase for a player during the buying phase.
-     * Returns the cost paid, or -1 if the purchase failed.
+     * Executes a resource purchase of 1 unit of {@code type} for {@code player}.
+     *
+     * Distribution strategy — "fill minimums first":
+     *   Pass 1: find the first compatible plant whose stored amount of this resource
+     *           is still below its resourceIntake (the minimum required to fire once).
+     *           This ensures every plant reaches its firing minimum before any plant
+     *           starts accumulating surplus tokens.
+     *   Pass 2: if all compatible plants already meet their firing minimum, fall back
+     *           to the first plant that still has any remaining free capacity.
+     *
+     * Example: player has a coal-2 plant (needs 2 coal) and a coal-3 plant (needs 3 coal).
+     *   Purchases 1–2 go to the coal-2 plant (filling its minimum).
+     *   Purchases 3–5 go to the coal-3 plant (filling its minimum).
+     *   Purchases 6+ overflow into whichever plant still has free capacity.
+     *
+     * The {@code targetPlant} parameter is retained for API compatibility but is
+     * ignored; the distribution logic selects the target automatically.
+     *
+     * Returns the cost paid (≥ 0) on success, or -1 on failure (no market supply,
+     * insufficient funds, or no compatible plant has capacity).
      */
     public int buyResource(Player player, Powerplant targetPlant,
                            ResourceType type, int amount) {
+        // Validate cost and funds before touching any plant state.
         int cost = resourceMarket.calculateCost(type, amount);
         if (cost < 0) return -1;
         if (!player.canAfford(cost)) return -1;
-        if (!player.canStoreResource(targetPlant, type, amount)) return -1;
 
+        // Collect all plants that accept this resource type and still have room.
+        List<Powerplant> compatible = new ArrayList<>();
+        for (Powerplant p : player.getPowerplants()) {
+            if (player.canStoreResource(p, type, 1)) {
+                compatible.add(p);
+            }
+        }
+        if (compatible.isEmpty()) return -1;
+
+        // Pass 1: prefer a plant that hasn't yet reached its firing minimum.
+        Powerplant chosen = null;
+        for (Powerplant p : compatible) {
+            if (p.getStoredAmount(type) < p.getResourceIntake()) {
+                chosen = p;
+                break;
+            }
+        }
+
+        // Pass 2: all plants are at or above their minimum — use first plant with space.
+        if (chosen == null) {
+            chosen = compatible.get(0);
+        }
+
+        // Commit: deduct from market and wallet, then place token on chosen plant.
         int actual = resourceMarket.buyResource(type, amount);
         player.spendMoney(actual);
-        player.addResource(targetPlant, type, amount);
+        player.addResource(chosen, type, amount);
         return actual;
     }
 
     /**
      * BUILDING phase.
      * Iterates in reverse. Actual city selection is UI-driven.
-     * This executes a single city build.
      */
     public void handleBuildHousesPhase() {
         currentPlayerIndex = turnOrder.size() - 1;
@@ -332,11 +434,9 @@ public class RoundManager {
      * Returns total cost paid, or -1 on failure.
      */
     public int buildCity(Player player, City targetCity) {
-        // FIX: Ensure the city is in one of the 3 selected regions
         if (!board.getActiveCities().contains(targetCity)) return -1;
 
         if (player.getOwnedCities().isEmpty()) {
-            // first city: flat 10, no connection cost
             if (!player.canAfford(10)) return -1;
             if (!targetCity.hasOpenSlot(currentStep)) return -1;
             if (targetCity.isOccupiedBy(player)) return -1;
@@ -347,9 +447,8 @@ public class RoundManager {
             return 10;
         }
 
-        // subsequent cities: connection + slot cost
         int connectionCost = board.calculateConnectionCost(player.getOwnedCities(), targetCity);
-        if (connectionCost == Integer.MAX_VALUE) return -1; // unreachable
+        if (connectionCost == Integer.MAX_VALUE) return -1;
         int slotCost = targetCity.getNextSlotCost(currentStep);
         if (slotCost < 0) return -1;
         int total = connectionCost + slotCost;
@@ -360,7 +459,6 @@ public class RoundManager {
         targetCity.addOccupant(player, currentStep);
         player.addCity(targetCity);
 
-        // remove obsolete plants immediately after build
         deck.removeObsoletePlants(getLeadingCityCount());
 
         return total;
@@ -370,49 +468,50 @@ public class RoundManager {
      * BUREAUCRACY phase — all four sub-phases in sequence.
      */
     public void handleBureaucracy() {
-        // Phase 1: step transitions
         checkStepTransition();
 
-        // Phase 2: earn cash (or determine winner if final round)
         boolean isFinalRound = checkVictory();
         if (!isFinalRound) {
             payPlayers();
         } else {
-            determineWinner();
-            return; // game over
+            determineWinner(Collections.emptyMap());
+            return;
         }
 
-        // Phase 3: restock resource market
         resourceMarket.restock(players.size(), currentStep);
 
-        // Phase 4: update power plant market
         if (currentStep == 1 || currentStep == 2) {
             deck.discardHighestPlant();
         } else {
             deck.removeLowestPlant();
         }
 
-        // advance to next round
+        // The deck's rebalance (called internally by the above) may have encountered
+        // the Step 3 card for the first time during Bureaucracy (Phase 5). The rulebook
+        // explicitly covers this case: the card is removed, the deck reshuffled, and
+        // Step 3 begins at the start of the next round (Determine Player Order).
+        // Without this check the flag is silently cleared on the next rebalance call,
+        // Step 3 never activates, and the game can become unwinnable.
+        if (deck.wasStep3CardEncountered()) {
+            step3CardPending = true;
+            System.out.println("Step 3 card drawn during Bureaucracy — will activate next round.");
+        }
+
         nextPhase();
     }
 
     /**
      * Each player declares how many cities they power and earns money accordingly.
-     * Fires plants and decrements their stored resources.
-     * Minimum payout is always 10 Elektro.
      */
     private void payPlayers() {
         for (Player player : turnOrder) {
             int powerableCount = Math.min(player.getActualPowerableCount(), player.getCityCount());
-            // fire the plants
             for (Powerplant p : player.getPowerplants()) {
                 if (p.canFire() && powerableCount > 0) {
                     Map<ResourceType, Integer> consumed = p.fire();
                     powerableCount -= p.getHouseOutput();
-                    // consumed resources go back to supply (not the market — tracked externally)
                 }
             }
-            // look up payment
             int citiesPowered = Math.min(player.getActualPowerableCount(), player.getCityCount());
             int payment = getPayment(citiesPowered);
             player.addMoney(payment);
@@ -420,22 +519,57 @@ public class RoundManager {
     }
 
     /**
-     * Final round: no cash. Player who powers the most cities wins.
-     * Tiebreak: most money.
+     * Determines the winner and builds a {@link GameResult} that the UI can display.
+     *
+     * {@code citiesPoweredMap} must contain each player's final powered-city count
+     * (recorded by BureaucracyPanel before plant.fire() consumes resources).
+     * Pass an empty map when calling from the non-interactive handleBureaucracy() path.
+     *
+     * Tiebreak order: powered cities → most money → most cities built.
      */
-    private void determineWinner() {
-        Player winner = null;
-        int bestPower = -1;
-        int bestMoney = -1;
+    public void determineWinner(Map<Player, Integer> citiesPoweredMap) {
+        Player winner   = null;
+        int bestPowered = -1;
+        int bestMoney   = -1;
+        int bestCities  = -1;
 
         for (Player p : players) {
-            int powered = Math.min(p.getActualPowerableCount(), p.getCityCount());
-            if (powered > bestPower || (powered == bestPower && p.getMoney() > bestMoney)) {
-                winner = p;
-                bestPower = powered;
-                bestMoney = p.getMoney();
+            int powered = citiesPoweredMap.containsKey(p)
+                    ? citiesPoweredMap.get(p)
+                    : Math.min(p.getActualPowerableCount(), p.getCityCount());
+            int money  = p.getMoney();
+            int cities = p.getCityCount();
+
+            boolean winsOnPower  = powered > bestPowered;
+            boolean tiesOnPower  = powered == bestPowered;
+            boolean winsOnMoney  = tiesOnPower && money > bestMoney;
+            boolean tiesOnMoney  = tiesOnPower && money == bestMoney;
+            boolean winsOnCities = tiesOnMoney && cities > bestCities;
+
+            if (winsOnPower || winsOnMoney || winsOnCities) {
+                winner      = p;
+                bestPowered = powered;
+                bestMoney   = money;
+                bestCities  = cities;
             }
         }
+
+        final Player finalWinner = winner;
+        List<GameResult.PlayerResult> results = new ArrayList<>();
+        for (Player p : players) {
+            int powered = citiesPoweredMap.containsKey(p)
+                    ? citiesPoweredMap.get(p)
+                    : Math.min(p.getActualPowerableCount(), p.getCityCount());
+            results.add(new GameResult.PlayerResult(
+                    p, powered, p.getMoney(), p.getCityCount(), p.equals(finalWinner)));
+        }
+        results.sort((a, b) -> {
+            if (b.citiesPowered != a.citiesPowered) return b.citiesPowered - a.citiesPowered;
+            if (b.money != a.money) return b.money - a.money;
+            return b.citiesOwned - a.citiesOwned;
+        });
+
+        gameResult = new GameResult(winner, results);
         System.out.println("GAME OVER. Winner: " + (winner != null ? winner.getName() : "none"));
     }
 
@@ -461,29 +595,37 @@ public class RoundManager {
     }
 
     /**
-     * Checks and handles Step 2 and Step 3 transitions.
-     * Step 3 is triggered mid-auction via handleStep3Trigger(); this only checks Step 2.
+     * Checks and applies step transitions. Called at the START of the Bureaucracy phase.
      */
     public void checkStepTransition() {
+        if (step3CardPending) {
+            step3CardPending = false;
+            currentStep = 3;
+            deck.removeLowestPlant();
+            deck.activateStepThree();
+            System.out.println("Step 3 activated (card drawn during auction).");
+            return;
+        }
+
         if (currentStep == 1) {
             int threshold = STEP2_THRESHOLDS.getOrDefault(players.size(), 7);
             for (Player p : players) {
                 if (p.getCityCount() >= threshold) {
                     currentStep = 2;
-                    deck.removeLowestPlant(); // Step 2 transition removes lowest
+                    deck.removeLowestPlant();
+                    System.out.println("Step 2 activated (city threshold reached).");
                     return;
                 }
             }
         }
-        // Step 3 is handled mid-auction, not here
     }
 
     /**
-     * Called when the Step 3 card is drawn from the deck during auction.
+     * Called when the Step 3 card is drawn from the deck (during Phase 2 – Auction).
      */
     public void handleStep3Trigger() {
-        currentStep = 3;
-        deck.activateStepThree();
+        step3CardPending = true;
+        System.out.println("Step 3 card drawn during auction — will activate after Phase 4.");
     }
 
     // --- Helper ---
