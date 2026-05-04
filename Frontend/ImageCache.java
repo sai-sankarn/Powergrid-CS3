@@ -41,6 +41,9 @@ public final class ImageCache {
     /** Shared background image (loaded once). */
     private static BufferedImage background;
 
+    /**STEP 3 CARD**/
+    private static BufferedImage step3Card;
+
     // ── Public API ────────────────────────────────────────────────────────────
 
     /**
@@ -102,5 +105,15 @@ public final class ImageCache {
             System.err.println("ImageCache: could not load " + path + " — " + e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Returns the Step 3 card image.
+     */
+    public static BufferedImage getStep3Card() {
+        if (step3Card == null) {
+            step3Card = load("/Images/step3.png");
+        }
+        return step3Card;
     }
 }

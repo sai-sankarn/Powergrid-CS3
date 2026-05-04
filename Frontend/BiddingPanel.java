@@ -423,6 +423,20 @@ public class BiddingPanel extends JPanel implements MouseListener {
             return;
         }
 
+        // --- NEW: DRAW STEP 3 CARD IF PENDING ---
+        if (rm.isStep3CardPending()) {
+            BufferedImage step3Img = ImageCache.getStep3Card();
+            if (step3Img != null) {
+                // Draw the card image
+                g.drawImage(step3Img, 1445, 80, 125, 125, null);
+
+                // Add the "PENDING" label
+                g.setFont(new Font("Arial", Font.BOLD, 14));
+                g.setColor(new Color(255, 160, 50));
+                g.drawString("PENDING", 1478, 215);
+            }
+        }
+
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.setColor(Color.WHITE);
 
@@ -472,14 +486,13 @@ public class BiddingPanel extends JPanel implements MouseListener {
                 }
             } else {
                 // --- STEP 3: 6 PLANTS (3 ON TOP, 3 ON BOTTOM) ---
-                // In Step 3, all plants in the deck's currentMarket are available.
                 List<Powerplant> allMarket = new ArrayList<>(rm.getDeck().getCurrentMarket());
                 allMarket.sort(Comparator.comparingInt(Powerplant::getNumber));
 
                 for (int i = 0; i < Math.min(allMarket.size(), 6); i++) {
                     Powerplant p = allMarket.get(i);
-                    int row = i / 3; // 0 for top row, 1 for bottom row
-                    int col = i % 3; // 0, 1, or 2
+                    int row = i / 3;
+                    int col = i % 3;
 
                     int x = 918 + (col * 132);
                     int y = (row == 0) ? 209 : 354;
@@ -487,33 +500,25 @@ public class BiddingPanel extends JPanel implements MouseListener {
                     BufferedImage img = getPlantImage(p.getNumber());
                     if (img != null) {
                         g.drawImage(img, x, y, 122, 122, null);
-                        // Optional: Add a small "STEP 3" badge or label if desired
                     }
                 }
 
                 g.setFont(new Font("Arial", Font.BOLD, 18));
                 g.setColor(Color.YELLOW);
                 g.drawString("STEP 3 ACTIVE: ALL PLANTS AVAILABLE", 963, 140);
-                if (rm.isStep3CardPending()) {
-                    g.setColor(new Color(255, 160, 50));
-                    g.drawString("(Step 3 card drawn — activates after building phase)", 963, 165);
-                }
             }
 
         } else {
             // --- UI FOR BIDDING PHASE ---
-            // --- UI FOR BIDDING PHASE ---
             Player activeBidder = currentBidders.get(activeBidderIndex);
             g.drawString("Current Turn: " + activeBidder.getName(), 963, 100);
 
-            // FIX: Safely check if highest bidder is null to prevent NPE
             Player highestBidder = rm.getCurrentHighestBidder();
             String bidderName = (highestBidder != null) ? highestBidder.getName() : "None";
             g.drawString("Highest Bidder: " + bidderName, 963, 140);
 
             g.drawString("Current Bid: " + rm.getCurrentHighBid() + " Elektro", 963, 180);
 
-            // Draw the plant currently being auctioned in the center
             Powerplant auctionPlant = rm.getCurrentAuctionPlant();
             if (auctionPlant != null) {
                 BufferedImage img = getPlantImage(auctionPlant.getNumber());
@@ -524,22 +529,18 @@ public class BiddingPanel extends JPanel implements MouseListener {
         }
 
         Player player;
-
-        // Determine who the current player is based on the auction state
         if (isAuctionActive) {
-            // An auction is happening: get the person whose turn it is to bid
             if (currentBidders.isEmpty() || activeBidderIndex >= currentBidders.size()) return;
             player = currentBidders.get(activeBidderIndex);
         } else {
-            // No auction is happening: get the person whose turn it is to pick a plant
             if (auctionInitiatorIndex >= rm.getTurnOrder().size()) return;
             player = rm.getTurnOrder().get(auctionInitiatorIndex);
         }
 
         PanelUtils.paintResourceIcons(g, frame.getRoundManager().getResourceMarket(), frame.getRoundManager());
-        PanelUtils.paintHand(g,player,plantImages);
+        PanelUtils.paintHand(g, player, plantImages);
         PanelUtils.paintCities(g, frame.getRoundManager());
-        PanelUtils.paintTurnOrderIndicators(g,frame.getRoundManager());
+        PanelUtils.paintTurnOrderIndicators(g, frame.getRoundManager());
 
         rm.getDeck().printState();
     }
