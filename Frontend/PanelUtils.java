@@ -41,21 +41,26 @@ public final class PanelUtils {
     // ── Cities and Board Tracker ──────────────────────────────────────────────
 
     /**
-     * Paints all owned cities on the map using slot-based positioning for Step 2/3.
-     * Also paints markers on the city-count tracker with offsets to prevent stacking.
+     * Paints all owned cities on the map using stable slot-based positioning.
+     * Step 1: Top | Step 2: Left | Step 3: Right
      */
     public static void paintCities(Graphics g, RoundManager rm) {
         if (rm == null) return;
 
-        // Tracks how many markers we've drawn for each city to assign slots 1, 2, or 3
+        // 1. Get a STABLE list of players (sorted by color)
+        // This prevents markers from "jumping" slots when turn order changes.
+        List<Player> stablePlayers = new ArrayList<>(rm.getPlayers());
+        stablePlayers.sort(Comparator.comparing(Player::getColor));
+
+        // Tracks how many markers we've drawn for each city to assign slots 0, 1, or 2
         Map<String, Integer> cityOccupancy = new HashMap<>();
-        // Tracks how many markers are at each number on the tracker to prevent overlapping
+        // Tracks markers on the city-count tracker to prevent overlapping
         Map<Integer, Integer> trackerOccupancy = new HashMap<>();
 
-        for (Player p : rm.getPlayers()) {
+        for (Player p : stablePlayers) {
             Color c = parseColor(p.getColor());
 
-            // 1. Paint cities on the map using your provided coordinates
+            // --- Paint cities on the map ---
             for (City city : p.getOwnedCities()) {
                 Point pt = Constants.CityCoordinates.coordinates.get(city.getName());
                 if (pt == null) continue;
@@ -63,30 +68,30 @@ public final class PanelUtils {
                 int slot = cityOccupancy.getOrDefault(city.getName(), 0);
                 g.setColor(c);
 
-                if (slot == 0) {
-                    // Step 1 slot (10 Electro)
-                    g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
-                } else if (slot == 1) {
-                    // Step 2 slot (15 Electro)
-                    g.fillRect(pt.x - 20, pt.y, 20, 20);
-                } else if (slot == 2) {
-                    // Step 3 slot (20 Electro)
-                    g.fillRect(pt.x + 20, pt.y, 20, 20);
+                // Slot 0 = Top, Slot 1 = Left, Slot 2 = Right
+                // (Offsets adjusted so the 20x20 square is centered relative to the point)
+                switch (slot) {
+                    case 0 -> // Step 1: Top
+                            g.fillRect(pt.x - 10, pt.y - 25, 20, 20);
+                    case 1 -> // Step 2: Left
+                            g.fillRect(pt.x - 20, pt.y, 20, 20);
+                    case 2 -> // Step 3: Right
+                            g.fillRect(pt.x + 20, pt.y, 20, 20);
                 }
 
                 cityOccupancy.put(city.getName(), slot + 1);
             }
 
-            // 2. Paint tracker markers (with a small 5px offset if players are tied)
+            // --- Paint tracker markers ---
             int count = p.getCityCount();
             int stackOffset = trackerOccupancy.getOrDefault(count, 0) * 5;
             g.setColor(c);
 
             if (count >= 0 && count <= 7) {
-                // First row of the tracker
+                // First row (0-7)
                 g.fillRect(410 + (count * 65) + stackOffset, 16 + stackOffset, 20, 20);
             } else if (count > 7) {
-                // Second row of the tracker
+                // Second row (8+)
                 g.fillRect(410 + ((count - 7) * 32) + stackOffset, 47 + stackOffset, 20, 20);
             }
             trackerOccupancy.put(count, trackerOccupancy.getOrDefault(count, 0) + 1);

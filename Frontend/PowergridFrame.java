@@ -33,9 +33,9 @@ public class PowergridFrame extends JFrame {
         mainContainer = new JPanel(cardLayout);
 
         ArrayList<Player> players = new ArrayList<>();
-        players.add(new Player("Sai",       50, "Yellow"));
-        players.add(new Player("ChenXi",    50, "Blue"));
-        players.add(new Player("Catherine", 50, "Green"));
+        players.add(new Player("Player 1",       50, "Yellow"));
+        players.add(new Player("Player 2",    50, "Blue"));
+        players.add(new Player("Player 3", 50, "Green"));
 
         Gameboard board = new Gameboard();
         board.initializeGermanMap();
